@@ -57,3 +57,7 @@ coverage/
 # Optional npm cache
 # ---------------------------
 .npm
+# AWS CLI / Serverless temp files
+aws/
+.serverless/
+.deploy/
