@@ -17,4 +17,14 @@ Este proyecto es un backend construido con **Node.js 20**, **Serverless Framewor
 ---
 
 ## Estructura del proyecto
+backend-sls/
+│
+├─ routes/                 # Endpoints agrupados por funcionalidad (usuarios, login, partidos)
+├─ services/               # Servicios de conexión a DB y utilidades
+├─ node_modules/
+├─ .env                    # Variables de entorno
+├─ .gitignore
+├─ serverless.yml          # Configuración de Serverless Framework
+├─ package.json
+└─ README.md
 
