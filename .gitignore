@@ -1,40 +1,59 @@
+# ---------------------------
 # Node.js dependencies
+# ---------------------------
 node_modules/
-
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Runtime data
+# ---------------------------
+# Runtime data / PID / lock files
+# ---------------------------
 pids
 *.pid
 *.seed
 *.pid.lock
 
-# dotenv environment variables
+# ---------------------------
+# Environment variables
+# ---------------------------
 .env
+.env.*.local
 
-# Serverless artifact
+# ---------------------------
+# Serverless build / deployment artifacts
+# ---------------------------
 .serverless/
 .deploy/
+.esbuild/            # si usas esbuild para bundling
+dist/                # si tienes carpeta de salida
 
+# ---------------------------
 # VSCode settings
+# ---------------------------
 .vscode/
 
-# MacOS
+# ---------------------------
+# MacOS system files
+# ---------------------------
 .DS_Store
+.AppleDouble
+.LSOverride
 
-# Optional npm cache
-.npm
-
-# Temporary files
+# ---------------------------
+# Temporary / log files
+# ---------------------------
 *.tmp
 *.temp
+*.log
 
-# Coverage
+# ---------------------------
+# Test coverage
+# ---------------------------
 coverage/
 
-# Optional debug files
-*.log
+# ---------------------------
+# Optional npm cache
+# ---------------------------
+.npm
