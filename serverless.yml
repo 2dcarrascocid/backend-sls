@@ -18,6 +18,21 @@ provider:
       - name: FplayChileApiKey
         value: ${env:API_KEY}
 
+  httpApi:
+    cors:
+      allowedOrigins:
+        - '*'                # todos los orígenes
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      allowCredentials: false
+
+
 functions:
 
   createPartido:
