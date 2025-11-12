@@ -1,0 +1,40 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables
+.env
+
+# Serverless artifact
+.serverless/
+.deploy/
+
+# VSCode settings
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Optional npm cache
+.npm
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage
+coverage/
+
+# Optional debug files
+*.log

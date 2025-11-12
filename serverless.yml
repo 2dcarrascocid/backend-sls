@@ -1,0 +1,117 @@
+service: backend-sls
+frameworkVersion: '>=4.0.0'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: dev
+  environment:
+    SUPABASE_URL: ${env:SUPABASE_URL}
+    SUPABASE_SERVICE_ROLE_KEY: ${env:SUPABASE_SERVICE_ROLE_KEY}
+    USE_DB_MOCK: ${env:USE_DB_MOCK}
+  apiKeys:
+    - ${env:API_KEY}
+
+functions:
+  hello:
+    handler: routes/hello/index.main
+    events:
+      - httpApi:
+          path: /api/hello
+          method: get
+
+  getUsers:
+    handler: routes/usuarios/index.main
+    events:
+      - httpApi:
+          path: /api/usuarios
+          method: get
+
+  createUser:
+    handler: routes/usuarios/create.main
+    events:
+      - httpApi:
+          path: /api/usuarios
+          method: post
+
+  login:
+    handler: routes/login/index.main
+    events:
+      - httpApi:
+          path: /api/login
+          method: post
+
+  buscarUsuario:
+    handler: routes/usuarios/buscarUsuario.buscarUsuario
+    events:
+      - httpApi:
+          path: /api/usuarios/buscar
+          method: post
+
+  createPartido:
+    handler: routes/partidos/create.main
+    events:
+      - httpApi:
+          path: /api/partidos
+          method: post
+
+  joinPartido:
+    handler: routes/partidos/join.main
+    events:
+      - httpApi:
+          path: /api/partidos/{join_code}/join
+          method: post
+
+  listPartidos:
+    handler: routes/partidos/list.main
+    events:
+      - httpApi:
+          path: /api/partidos
+          method: get
+
+  getPartidoById:
+    handler: routes/partidos/getById.handler
+    events:
+      - httpApi:
+          path: /api/partidos/{id}
+          method: get
+
+  asistirPartido:
+    handler: routes/partidos/asistire.main
+    events:
+      - httpApi:
+          path: /api/partidos/{id}/asistire
+          method: post
+
+  cancelarPartido:
+    handler: routes/partidos/cancelar.main
+    events:
+      - httpApi:
+          path: /api/partidos/{id}/cancelar
+          method: post
+
+  llegadaPartido:
+    handler: routes/partidos/llegada.main
+    events:
+      - httpApi:
+          path: /api/partidos/{id}/llegada
+          method: post
+
+  calificarPartido:
+    handler: routes/partidos/calificar.main
+    events:
+      - httpApi:
+          path: /api/partidos/{id}/calificar
+          method: post
+
+  swaggerDocs:
+    handler: routes/swagger/swaggerDocs.handler
+    events:
+      - http:
+          path: api/docs
+          method: get
+          cors: true
+
+plugins:
+  - serverless-offline
