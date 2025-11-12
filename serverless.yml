@@ -10,100 +10,75 @@ provider:
     SUPABASE_URL: ${env:SUPABASE_URL}
     SUPABASE_SERVICE_ROLE_KEY: ${env:SUPABASE_SERVICE_ROLE_KEY}
     USE_DB_MOCK: ${env:USE_DB_MOCK}
-  apiKeys:
-    - ${env:API_KEY}
+    API_KEY: ${env:API_KEY}
+
+  # Esto aplica solo en AWS, no afecta a serverless-offline
+  apiGateway:
+    apiKeys:
+      - name: FplayChileApiKey
+        value: ${env:API_KEY}
 
 functions:
-  hello:
-    handler: routes/hello/index.main
-    events:
-      - httpApi:
-          path: /api/hello
-          method: get
-
-  getUsers:
-    handler: routes/usuarios/index.main
-    events:
-      - httpApi:
-          path: /api/usuarios
-          method: get
-
-  createUser:
-    handler: routes/usuarios/create.main
-    events:
-      - httpApi:
-          path: /api/usuarios
-          method: post
-
-  login:
-    handler: routes/login/index.main
-    events:
-      - httpApi:
-          path: /api/login
-          method: post
-
-  buscarUsuario:
-    handler: routes/usuarios/buscarUsuario.buscarUsuario
-    events:
-      - httpApi:
-          path: /api/usuarios/buscar
-          method: post
 
   createPartido:
-    handler: routes/partidos/create.main
+    handler: routes/partidos/create.handler
     events:
       - httpApi:
           path: /api/partidos
           method: post
 
-  joinPartido:
-    handler: routes/partidos/join.main
+  buscarPartidos:
+    handler: routes/partidos/buscar.handler
     events:
       - httpApi:
-          path: /api/partidos/{join_code}/join
-          method: post
-
-  listPartidos:
-    handler: routes/partidos/list.main
-    events:
-      - httpApi:
-          path: /api/partidos
+          path: /partidos/buscar
           method: get
 
-  getPartidoById:
-    handler: routes/partidos/getById.handler
+  partidoAsistencia:
+    handler: routes/partidos/asistencia.handler
     events:
       - httpApi:
-          path: /api/partidos/{id}
+          path: /partidos/asistencia
           method: get
+      - httpApi:
+          path: /partidos/asistencia
+          method: post
+      - httpApi:
+          path: /partidos/asistencia
+          method: delete
 
-  asistirPartido:
-    handler: routes/partidos/asistire.main
+  asistenciaEstado:
+    handler: routes/partidos/asistencia_estado.handler
     events:
       - httpApi:
-          path: /api/partidos/{id}/asistire
-          method: post
-
-  cancelarPartido:
-    handler: routes/partidos/cancelar.main
-    events:
+          path: /partidos/asistencia-estado
+          method: get
       - httpApi:
-          path: /api/partidos/{id}/cancelar
+          path: /partidos/asistencia-estado
           method: post
-
-  llegadaPartido:
-    handler: routes/partidos/llegada.main
-    events:
       - httpApi:
-          path: /api/partidos/{id}/llegada
-          method: post
+          path: /partidos/asistencia-estado
+          method: delete
 
   calificarPartido:
-    handler: routes/partidos/calificar.main
+    handler: routes/partidos/calificar.handler
     events:
       - httpApi:
-          path: /api/partidos/{id}/calificar
+          path: /partidos/calificar
+          method: get
+      - httpApi:
+          path: /partidos/calificar
           method: post
+      - httpApi:
+          path: /partidos/calificar
+          method: delete
+
+  partidosJugador:
+    handler: routes/partidos/jugadores_partidos.handler
+    events:
+      - httpApi:
+          path: /partidos/jugador
+          method: get
 
   swaggerDocs:
     handler: routes/swagger/swaggerDocs.handler
@@ -115,3 +90,22 @@ functions:
 
 plugins:
   - serverless-offline
+
+package:
+  individually: true
+  exclude:
+    - .git/**
+    - test/**
+    - docs/**
+    - .env
+    - README.md
+    - awscliv2.zip
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    target: node20
+    platform: node
+    external:
+      - aws-sdk

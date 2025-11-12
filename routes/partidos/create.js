@@ -1,12 +1,12 @@
-import { query } from '../../services/db.js';
-import crypto from 'crypto';
+import { supabase } from '../../services/db.js'
+import { withAuth } from '../../services/withAuth.js'
 
 /**
  * @swagger
  * /partidos:
  *   post:
  *     summary: Crea un nuevo partido
- *     description: Crea un partido y devuelve su ID y join_code.
+ *     description: Crea un partido en la base de datos Supabase y devuelve el registro recién creado.
  *     tags:
  *       - Partidos
  *     requestBody:
@@ -15,41 +15,145 @@ import crypto from 'crypto';
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - owner_id
+ *               - nombre
+ *               - fecha
  *             properties:
+ *               owner_id:
+ *                 type: string
+ *                 format: uuid
+ *                 example: "b2d5d19c-4a18-4a64-bd1a-4b9e1fd7f9ef"
+ *                 description: ID del usuario creador del partido
  *               nombre:
  *                 type: string
- *               lugar:
+ *                 example: "Partido amistoso en Ñuñoa"
+ *                 description: Nombre del partido
+ *               fecha:
  *                 type: string
+ *                 format: date-time
+ *                 example: "2025-11-15T18:00:00Z"
+ *                 description: Fecha y hora del partido
+ *               lat:
+ *                 type: number
+ *                 format: float
+ *                 example: -33.45694
+ *                 description: Latitud del partido
+ *               lng:
+ *                 type: number
+ *                 format: float
+ *                 example: -70.64827
+ *                 description: Longitud del partido
  *     responses:
- *       200:
+ *       201:
  *         description: Partido creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 partido:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     owner_id:
+ *                       type: string
+ *                       format: uuid
+ *                     nombre:
+ *                       type: string
+ *                     fecha:
+ *                       type: string
+ *                       format: date-time
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     lat:
+ *                       type: number
+ *                     lng:
+ *                       type: number
+ *       400:
+ *         description: Faltan campos requeridos
  *       500:
  *         description: Error al crear el partido
  */
 
-export const handler = async (event) => {
+
+
+
+
+export const handlerLocal = async (event) => {
   try {
-    const body = JSON.parse(event.body);
-    const { nombre, fecha, lugar, creador_id } = body;
+    const body = JSON.parse(event.body || '{}')
+    const { owner_id, nombre, fecha, lat, lng } = body
 
-    const joinCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+    // 🔍 Validación
+    if (!owner_id || !nombre || !fecha) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error: 'Campos requeridos: owner_id, nombre, fecha'
+        })
+      }
+    }
 
-    const result = await query(
-      `INSERT INTO partidos (nombre, fecha, lugar, creador_id, join_code)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, join_code`,
-      [nombre, fecha, lugar, creador_id, joinCode]
-    );
+    // ⚙️ Modo MOCK
+    if (process.env.USE_DB_MOCK === 'true') {
+      const mockPartido = {
+        id: 'mock-id-123',
+        owner_id,
+        nombre,
+        fecha,
+        created_at: new Date().toISOString(),
+        lat: lat || -33.45,
+        lng: lng || -70.66
+      }
 
+      return {
+        statusCode: 201,
+        body: JSON.stringify({ partido: mockPartido })
+      }
+    }
+
+    // 🚀 Inserción real en Supabase
+    const { data, error } = await supabase
+      .from('partidos')
+      .insert([
+        {
+          owner_id,
+          nombre,
+          fecha,
+          created_at: new Date().toISOString(),
+          lat,
+          lng
+        }
+      ])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error al insertar en Supabase:', error)
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Error al crear el partido' })
+      }
+    }
+
+    // ✅ Retornar el partido recién creado
     return {
       statusCode: 201,
-      body: JSON.stringify(result.rows[0]),
-    };
-  } catch (err) {
-    console.error('Error al crear partido:', err);
+      body: JSON.stringify({ partido: data })
+    }
+
+  } catch (error) {
+    console.error('Error en createPartido:', error)
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error interno' }),
-    };
+      body: JSON.stringify({ error: 'Error interno del servidor' })
+    }
   }
-};
+}
+
+export const handler = withAuth(handlerLocal)
+
