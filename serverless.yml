@@ -95,14 +95,6 @@ functions:
           path: /partidos/jugador
           method: get
 
-  swaggerDocs:
-    handler: routes/swagger/swaggerDocs.handler
-    events:
-      - http:
-          path: /docs
-          method: get
-          cors: true
-
   crearJugador:
     handler: routes/jugadores/crear.handler
     events:
@@ -116,6 +108,21 @@ functions:
       - httpApi:
           path: /jugadores/actualizar
           method: put
+
+  obtenerJugadorPorId:
+    handler: routes/jugadores/obtenerPorId.handler
+    events:
+      - httpApi:
+          path: /jugadores/{id}
+          method: get
+
+  swaggerDocs:
+    handler: routes/swagger/swaggerDocs.handler
+    events:
+      - httpApi:
+          path: /docs
+          method: get
+          
 plugins:
   - serverless-offline
 
@@ -137,3 +144,4 @@ custom:
     platform: node
     external:
       - aws-sdk
+      

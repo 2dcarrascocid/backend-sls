@@ -3,7 +3,7 @@ import { withAuth } from '../../services/withAuth.js'
 
 /**
  * @swagger
- * /jugadores/crear:
+ * /jugadores:
  *   post:
  *     summary: Crear un nuevo jugador
  *     description: Crea un nuevo registro en la tabla `jugadores` en Supabase.

@@ -1,4 +1,3 @@
-import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
 const options = {
@@ -11,7 +10,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000/",
+        url: "http://localhost:3000",
         description: "Servidor local",
       },
       {
@@ -19,68 +18,63 @@ const options = {
         description: "Servidor AWS",
       },
     ],
-
-    // 🔑 Definición del esquema de seguridad global
     components: {
       securitySchemes: {
         ApiKeyAuth: {
           type: "apiKey",
           in: "header",
-          name: "x-api-key", // 👈 Header que se enviará en las peticiones
+          name: "x-api-key",
           description: "API Key requerida para acceder a los endpoints protegidos",
         },
       },
     },
-
-    // 🔒 Aplica seguridad global (opcional)
-    security: [
-      {
-        ApiKeyAuth: [],
-      },
-    ],
+    security: [{ ApiKeyAuth: [] }],
   },
-
-  // Swagger buscará los comentarios JSDoc dentro de tu estructura de rutas
-  apis: ["routes/**/*.js"],
+  apis: ["routes/**/*.js"], // Documentación extraída de tus endpoints
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
-/**
- * @swagger
- * /hello:
- *   get:
- *     summary: Endpoint de prueba
- *     tags:
- *       - Test
- *     security:
- *       - ApiKeyAuth: []
- *     responses:
- *       200:
- *         description: Devuelve un saludo de prueba
- */
-export const handler = async (event, context) => {
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "text/html" },
-    body: `
+export const handler = async () => {
+  try {
+    const html = `
       <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Swagger UI</title>
-        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
-      </head>
-      <body>
-        <div id="swagger-ui"></div>
-        <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-        <script>
-          SwaggerUIBundle({
-            spec: ${JSON.stringify(swaggerSpec)},
-            dom_id: '#swagger-ui'
-          });
-        </script>
-      </body>
+      <html lang="es">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Swagger UI - Fair Play Chile</title>
+          <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+        </head>
+        <body>
+          <div id="swagger-ui"></div>
+          <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+          <script>
+            const spec = ${JSON.stringify(swaggerSpec)};
+            SwaggerUIBundle({
+              spec,
+              dom_id: '#swagger-ui',
+              presets: [SwaggerUIBundle.presets.apis],
+              layout: "BaseLayout"
+            });
+          </script>
+        </body>
       </html>
-    `,
-  };
+    `;
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+      },
+      body: html,
+    };
+  } catch (err) {
+    console.error("Error generando Swagger UI:", err);
+    return {
+      statusCode: 500,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "Error generando Swagger UI" }),
+    };
+  }
 };
