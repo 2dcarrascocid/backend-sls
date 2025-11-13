@@ -7,15 +7,41 @@ const options = {
     info: {
       title: "API Fair Play Chile",
       version: "1.0.0",
-      description: "Documentación de endpoints de tu backend Serverless",
+      description: "Documentación de endpoints del backend Serverless Fair Play Chile",
     },
     servers: [
       {
-        url: "http://localhost:3000/", // Ajusta si usas /api directamente
+        url: "http://localhost:3000/",
+        description: "Servidor local",
+      },
+      {
+        url: "https://tu-api-url.execute-api.us-east-1.amazonaws.com/dev",
+        description: "Servidor AWS",
+      },
+    ],
+
+    // 🔑 Definición del esquema de seguridad global
+    components: {
+      securitySchemes: {
+        ApiKeyAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "x-api-key", // 👈 Header que se enviará en las peticiones
+          description: "API Key requerida para acceder a los endpoints protegidos",
+        },
+      },
+    },
+
+    // 🔒 Aplica seguridad global (opcional)
+    security: [
+      {
+        ApiKeyAuth: [],
       },
     ],
   },
-  apis: ["routes/**/*.js"], // Aquí Swagger buscará tus comentarios de rutas
+
+  // Swagger buscará los comentarios JSDoc dentro de tu estructura de rutas
+  apis: ["routes/**/*.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
@@ -25,12 +51,15 @@ const swaggerSpec = swaggerJsdoc(options);
  * /hello:
  *   get:
  *     summary: Endpoint de prueba
+ *     tags:
+ *       - Test
+ *     security:
+ *       - ApiKeyAuth: []
  *     responses:
  *       200:
  *         description: Devuelve un saludo de prueba
  */
 export const handler = async (event, context) => {
-  // Devuelve el contenido HTML de Swagger UI
   return {
     statusCode: 200,
     headers: { "Content-Type": "text/html" },

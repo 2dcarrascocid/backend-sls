@@ -39,7 +39,7 @@ functions:
     handler: routes/partidos/create.handler
     events:
       - httpApi:
-          path: /api/partidos
+          path: /partidos
           method: post
 
   buscarPartidos:
@@ -99,10 +99,23 @@ functions:
     handler: routes/swagger/swaggerDocs.handler
     events:
       - http:
-          path: api/docs
+          path: /docs
           method: get
           cors: true
 
+  crearJugador:
+    handler: routes/jugadores/crear.handler
+    events:
+      - httpApi:
+          path: /jugadores
+          method: post
+
+  actualizarJugador:
+    handler: routes/jugadores/actualizar.handler
+    events:
+      - httpApi:
+          path: /jugadores/actualizar
+          method: put
 plugins:
   - serverless-offline
 

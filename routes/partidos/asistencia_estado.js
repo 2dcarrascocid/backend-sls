@@ -138,7 +138,7 @@ export const handlerLocal = async (event) => {
 
       // Verificar si ya existe
       const { data: existente } = await supabase
-        .from('asistencia')
+        .from('asistencias')
         .select('*')
         .eq('partido_id', partido_id)
         .eq('jugador_id', jugador_id)
@@ -149,7 +149,7 @@ export const handlerLocal = async (event) => {
       if (existente) {
         // Actualizar estado existente
         const { data, error } = await supabase
-          .from('asistencia')
+          .from('asistencias')
           .update({
             estado,
             updated_at: new Date().toISOString()
@@ -163,7 +163,7 @@ export const handlerLocal = async (event) => {
       } else {
         // Crear nuevo registro
         const { data, error } = await supabase
-          .from('asistencia')
+          .from('asistencias')
           .insert([
             {
               partido_id,
@@ -197,7 +197,7 @@ export const handlerLocal = async (event) => {
       }
 
       const { data, error } = await supabase
-        .from('asistencia')
+        .from('asistencias')
         .delete()
         .eq('partido_id', partido_id)
         .eq('jugador_id', jugador_id)
@@ -226,7 +226,7 @@ export const handlerLocal = async (event) => {
     console.error('Error en asistencia_estado:', error)
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error interno del servidor' })
+      body: JSON.stringify({ error  })
     }
   }
 }
