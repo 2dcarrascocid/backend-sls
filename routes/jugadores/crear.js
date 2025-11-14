@@ -17,99 +17,81 @@ import { withAuth } from '../../services/withAuth.js'
  *             type: object
  *             required:
  *               - id
+ *               - owner_id
  *               - nombre
- *               - ower_id
  *               - posicion
  *             properties:
  *               id:
  *                 type: string
  *                 format: uuid
- *                 example: "b8a8e2f0-30a3-4c8a-8c1b-5c6f3c2e7f21"
  *               owner_id:
  *                 type: string
  *                 format: uuid
- *                 example: "b8a8e2f0-30a3-4c8a-8c1b-5c6f3c2e7f21"
  *               nombre:
  *                 type: string
- *                 example: "Carlos"
  *               posicion:
  *                 type: string
- *                 example: "Delantero"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 required: false
  *     responses:
- *       200:
+ *       201:
  *         description: Jugador creado correctamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Jugador creado exitosamente"
- *                 data:
- *                   type: object
- *                   example:
- *                     id: "b8a8e2f0-30a3-4c8a-8c1b-5c6f3c2e7f21"
- *                     owner_id: "b8a8e2f0-30a3-4c8a-8c1b-5c6f3c2e7f21"
- *                     nombre: "Carlos"
- *                     posicion: "Delantero"
- *                     created_at: "2025-11-13T12:00:00Z"
  *       400:
- *         description: Error de validación o fallo al crear
+ *         description: Error de validación
  */
 
 export const handlerLocal = async (event) => {
   try {
     const body = JSON.parse(event.body || "{}");
-    const { id, owner_id ,nombre, posicion } = body;
+    const { id, owner_id, nombre, posicion, email } = body;
 
-    // Validación básica
+    // Validación obligatoria
     if (!id || !owner_id || !nombre || !posicion) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "Faltan campos requeridos (id, owner_id ,nombre, posicion)" }),
-      };
-    }
-    // Timestamp automático
-    const created_at = new Date().toISOString();
-
-        if (process.env.USE_DB_MOCK === 'true') {
-            const mockPartido = {
-                id: 'mock-id-123',
-                owner_id,
-                nombre,
-                fecha,
-                created_at: new Date().toISOString(),
-                lat: lat || -33.45,
-                lng: lng || -70.66
-            }
-        
-
-            return {
-                statusCode: 201,
-                body: JSON.stringify({ partido: mockPartido })
-            }
-        }
-    // Llamada al servicio Supabase
-    const { data, error } = await supabase
-        .from("jugadores")
-        .insert([{ id, owner_id, nombre, posicion, created_at }])
-        .select()
-        .single()
-    
-     if (error) {
-      console.error('Error al insertar en Supabase:', error)
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Error al crear el Jugador' })
+        body: JSON.stringify({
+          message: "Faltan campos requeridos (id, owner_id, nombre, posicion)"
+        })
       }
     }
 
-    // ✅ Retornar el jugador  recién creado
+    const created_at = new Date().toISOString();
+
+    // Construcción dinámica del objeto a insertar
+    const jugadorInsert = {
+      id,
+      owner_id,
+      nombre,
+      posicion,
+      created_at
+    };
+
+    // Si viene email -> incluirlo
+    if (email) {
+      jugadorInsert.email = email;
+    }
+
+    // Inserción Supabase
+    const { data, error } = await supabase
+      .from("jugadores")
+      .insert([jugadorInsert])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error al insertar en Supabase:", error);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Error al crear el jugador" }),
+      };
+    }
+
     return {
       statusCode: 201,
-      body: JSON.stringify({ juagador: data })
-    }
+      body: JSON.stringify({ jugador: data }),
+    };
 
   } catch (error) {
     console.error("❌ Error creando jugador:", error);
@@ -123,4 +105,4 @@ export const handlerLocal = async (event) => {
   }
 };
 
-export const handler = withAuth(handlerLocal)
+export const handler = withAuth(handlerLocal);

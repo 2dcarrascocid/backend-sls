@@ -5,8 +5,7 @@ import { withAuth } from '../../services/withAuth.js'
  * @swagger
  * /partidos/jugador:
  *   get:
- *     summary: Obtiene todos los partidos de un jugador con paginación
- *     description: Devuelve todos los partidos asociados a un jugador, separados en pendientes y pasados, con límite y offset para paginación.
+ *     summary: Obtiene partidos pendientes y pasados de un jugador (paginados)
  *     tags:
  *       - Partidos
  *     parameters:
@@ -15,97 +14,113 @@ import { withAuth } from '../../services/withAuth.js'
  *         required: true
  *         schema:
  *           type: string
- *         description: ID del jugador a consultar
  *       - in: query
  *         name: limit
  *         required: false
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Cantidad de registros por página
  *       - in: query
  *         name: offset
  *         required: false
  *         schema:
  *           type: integer
  *           default: 0
- *         description: Índice de inicio para la paginación
- *     responses:
- *       200:
- *         description: Partidos obtenidos correctamente
- *       400:
- *         description: Falta parámetro jugador_id
- *       404:
- *         description: Jugador no encontrado
- *       500:
- *         description: Error interno del servidor
  */
 
 const getPartidosPorJugador = async (event) => {
   try {
-    const { jugador_id, limit = 10, offset = 0 } = event.queryStringParameters || {}
+    const { jugador_id, limit = 10, offset = 0 } = event.queryStringParameters || {};
 
     if (!jugador_id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Falta el parámetro jugador_id' }),
-      }
+        body: JSON.stringify({ error: "Falta el parámetro jugador_id" }),
+      };
     }
 
-    const limitInt = parseInt(limit, 10)
-    const offsetInt = parseInt(offset, 10)
-    const ahora = new Date().toISOString()
+    const limitInt = parseInt(limit, 10);
+    const offsetInt = parseInt(offset, 10);
+    const ahora = new Date().toISOString();
 
-    // 🧑‍🦱 Obtener jugador
+    // 1️⃣ Verificar existencia del jugador
     const { data: jugador, error: jugadorError } = await supabase
-      .from('jugadores')
-      .select('*')
-      .eq('id', jugador_id)
-      .single()
+      .from("jugadores")
+      .select("id, nombre")
+      .eq("id", jugador_id)
+      .single();
 
     if (jugadorError || !jugador) {
       return {
         statusCode: 404,
-        body: JSON.stringify({ error: 'Jugador no encontrado' }),
-      }
+        body: JSON.stringify({ error: "Jugador no encontrado" }),
+      };
     }
 
-    // ⚽ Pendientes
-    const { data: pendientes, count: countPendientes } = await supabase
-      .from('partidos')
-      .select('*, partido_jugador(jugador_id)', { count: 'exact' })
-      .eq('partido_jugador.jugador_id', jugador_id)
-      .gte('fecha', ahora)
-      .order('fecha', { ascending: true })
-      .range(offsetInt, offsetInt + limitInt - 1)
+    // 2️⃣ Obtener IDs de partidos desde la tabla relación
+    const { data: relaciones, error: relError } = await supabase
+      .from("partido_jugador")
+      .select("partido_id")
+      .eq("jugador_id", jugador_id);
 
-    // 🕒 Pasados
-    const { data: pasados, count: countPasados } = await supabase
-      .from('partidos')
-      .select('*, partido_jugador(jugador_id)', { count: 'exact' })
-      .eq('partido_jugador.jugador_id', jugador_id)
-      .lt('fecha', ahora)
-      .order('fecha', { ascending: false })
-      .range(offsetInt, offsetInt + limitInt - 1)
+    if (relError) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Error buscando relaciones jugador/partido" }),
+      };
+    }
+
+    // Si no tiene partidos → retornamos vacío
+    if (!relaciones || relaciones.length === 0) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          jugador,
+          partidos_pendientes: [],
+          total_pendientes: 0,
+          partidos_pasados: [],
+          total_pasados: 0
+        }),
+      };
+    }
+
+    const ids = relaciones.map(r => r.partido_id);
+
+    // 3️⃣ Obtener partidos pendientes
+    const { data: pendientes, error: pendientesError } = await supabase
+      .from("partidos")
+      .select("*", { count: "exact" })
+      .in("id", ids)
+      .gte("fecha", ahora)
+      .order("fecha", { ascending: true })
+      .range(offsetInt, offsetInt + limitInt - 1);
+
+    // 4️⃣ Obtener partidos pasados
+    const { data: pasados, error: pasadosError } = await supabase
+      .from("partidos")
+      .select("*", { count: "exact" })
+      .in("id", ids)
+      .lt("fecha", ahora)
+      .order("fecha", { ascending: false })
+      .range(offsetInt, offsetInt + limitInt - 1);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        jugador,
-        partidos_pendientes: pendientes,
-        total_pendientes: countPendientes || 0,
-        partidos_pasados: pasados,
-        total_pasados: countPasados || 0,
+        partidos_pendientes: pendientes || [],
+        total_pendientes: pendientes?.length || 0,
+        partidos_pasados: pasados || [],
+        total_pasados: pasados?.length || 0,
       }),
-    }
+    };
+
   } catch (error) {
-    console.error('Error en getPartidosJugador:', error)
+    console.error("❌ Error en getPartidosJugador:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error interno del servidor' }),
-    }
+      body: JSON.stringify({ error: "Error interno del servidor" }),
+    };
   }
-}
+};
 
-// ✅ Export final con autenticación automática
 export const handler = withAuth(getPartidosPorJugador)
