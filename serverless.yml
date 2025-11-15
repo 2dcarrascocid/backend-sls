@@ -35,94 +35,12 @@ provider:
 
 functions:
 
-  createPartido:
-    handler: routes/partidos/create.handler
-    events:
-      - httpApi:
-          path: /partidos
-          method: post
 
-  buscarPartidos:
-    handler: routes/partidos/buscar.handler
-    events:
-      - httpApi:
-          path: /partidos/buscar
-          method: get
+  - ${file(./routes/login/serverlessLogin.yml)}
+  - ${file(./routes/partidos/serverlessPartidos.yml)}
+  - ${file(./routes/jugadores/serverlessJugadores.yml)}
+  - ${file(./routes/swagger/serverlessSwagger.yml)}
 
-  partidoAsistencia:
-    handler: routes/partidos/asistencia.handler
-    events:
-      - httpApi:
-          path: /partidos/asistencia
-          method: get
-      - httpApi:
-          path: /partidos/asistencia
-          method: post
-      - httpApi:
-          path: /partidos/asistencia
-          method: delete
-
-  asistenciaEstado:
-    handler: routes/partidos/asistencia_estado.handler
-    events:
-      - httpApi:
-          path: /partidos/asistencia-estado
-          method: get
-      - httpApi:
-          path: /partidos/asistencia-estado
-          method: post
-      - httpApi:
-          path: /partidos/asistencia-estado
-          method: delete
-
-  calificarPartido:
-    handler: routes/partidos/calificar.handler
-    events:
-      - httpApi:
-          path: /partidos/calificar
-          method: get
-      - httpApi:
-          path: /partidos/calificar
-          method: post
-      - httpApi:
-          path: /partidos/calificar
-          method: delete
-
-  partidosJugador:
-    handler: routes/partidos/jugadores_partidos.handler
-    events:
-      - httpApi:
-          path: /partidos/jugador
-          method: get
-
-  crearJugador:
-    handler: routes/jugadores/crear.handler
-    events:
-      - httpApi:
-          path: /jugadores
-          method: post
-
-  actualizarJugador:
-    handler: routes/jugadores/actualizar.handler
-    events:
-      - httpApi:
-          path: /jugadores/actualizar
-          method: put
-
-  obtenerJugadorPorId:
-    handler: routes/jugadores/obtenerPorId.handler
-    events:
-      - httpApi:
-          path: /jugadores/{id}
-          method: get
-
-  swaggerDocs:
-    handler: routes/swagger/swaggerDocs.handler
-    events:
-      - httpApi:
-          path: /docs
-          method: get
-          
 plugins:
   - serverless-offline
 

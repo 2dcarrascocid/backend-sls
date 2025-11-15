@@ -1,0 +1,6 @@
+loginBasic:
+  handler: routes/login/loginBasic.handler
+  events:
+    - httpApi:
+        path: /login/basic
+        method: post

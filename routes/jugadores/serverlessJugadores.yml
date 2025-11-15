@@ -1,0 +1,22 @@
+obtenerJugadorPorId:
+  handler: obtenerPorId.handler
+  events:
+    - httpApi:
+        path: /jugadores/{id}
+        method: get
+
+crearJugador:
+  handler: crear.handler
+  events:
+    - httpApi:
+        path: /jugadores
+        method: post
+
+actualizarJugador:
+  handler: actualizar.handler
+  events:
+    - httpApi:
+        path: /jugadores/actualizar
+        method: put
+
+
