@@ -1,4 +1,3 @@
-import { withAuth } from '../../services/withAuth.js'
 
 /**
  * @swagger
@@ -43,115 +42,173 @@ import { withAuth } from '../../services/withAuth.js'
  */
 
 
+import { withAuth } from '../../services/withAuth.js'
+import * as crud from "./crud_login.js";
+import * as func from "./funciones.js";
 
-import { loginCRUD, sesionesCRUD, rolesCRUD, usuarioRolesCRUD } from './crud_login.js';
-import {
-  normalizeEmail,
-  sanitizeUserData,
-  createSessionObject,
-  hashPassword,
-  generateAccessToken,
-  generateRefreshToken,
-  hashRefreshToken
-} from './funciones.js';
+export const handlerLocal = async (event) => {
+  const body = JSON.parse(event.body || "{}");
 
-/* -------------------------------------------------------
-   🔹 LOGIN UNIVERSAL
-------------------------------------------------------- */
-export async function handlerLocal({ email, password, provider, nombre, provider_id }) {
-  console.log("email, password, provider, nombre, provider_id",email, password, provider, nombre, provider_id)
+  const { email, password, provider, nombre, provider_id } = body;
+
   try {
-    // 1️⃣ Normalizar email
-    const emailNorm = normalizeEmail(email);
+    /* ------------------------------------------------
+       1) Normalizar email
+    --------------------------------------------------*/
+    if (!email) throw new Error("El correo es requerido");
+    const emailNorm = func.normalizeEmail(email);
 
-    // 2️⃣ Buscar usuario existente
-    let usuario;
-    try {
-      usuario = await loginCRUD.getAll(); // Traemos todos y filtramos localmente
-      usuario = usuario.find(u => u.email === emailNorm);
-    } catch (err) {
-      usuario = null;
-    }
 
-    // 3️⃣ Si usuario no existe → crear
+    /* ------------------------------------------------
+       2) Buscar usuario por email
+    --------------------------------------------------*/
+    let usuario = await crud.findUserByEmail(emailNorm).catch(() => null);
+
+
+    /* ------------------------------------------------
+       3) Crear usuario si no existe
+    --------------------------------------------------*/
     if (!usuario) {
       let passwordHash = null;
-      if (provider === 'local') {
-        if (!password) throw new Error('Password requerido para login local');
-        passwordHash = await hashPassword(password);
+      let passwordSalt = null;
+
+      // Si login es local → generar password
+      if (provider === "local") {
+        if (!password) throw new Error("Debe enviar una contraseña para login local");
+
+        const pass = await func.hashPassword(password);
+        passwordHash = pass.hash;
+        passwordSalt = pass.salt;
+      }
+
+      if (provider !== "local" && !provider_id) {
+        throw new Error("provider_id requerido para login con terceros");
       }
 
       const newUser = {
         email: emailNorm,
         password_hash: passwordHash,
-        estado: 'activo',
+        estado: "activo",
         provider,
+        provider_id: provider_id || null,
         metadata: JSON.stringify({ nombre }),
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
-      const [creado] = await loginCRUD.create(newUser);
-      usuario = creado;
-    }
+      usuario = await crud.createUserIdentity(newUser);
 
-    // 4️⃣ Si es local, validar contraseña
-    if (provider === 'local') {
-      if (!password) throw new Error('Password requerido');
-      const validPass = await hashPassword(password);
-      const passwordOk = await verifyPassword(password, usuario.password_hash);
-      if (!passwordOk) throw new Error('Contraseña incorrecta');
-    }
-
-    // 5️⃣ Asignar rol básico si no tiene ninguno
-    const rolesAsignados = await usuarioRolesCRUD.getAll();
-    const tieneRol = rolesAsignados.some(r => r.usuario_id === usuario.id);
-
-    if (!tieneRol) {
-      // Buscar rol viewer
-      const roles = await rolesCRUD.getAll();
-      const viewerRole = roles.find(r => r.nombre === 'viewer');
-
-      if (viewerRole) {
-        await usuarioRolesCRUD.create({
-          usuario_id: usuario.id,
-          rol_id: viewerRole.id,
-          created_at: new Date().toISOString()
-        });
+      // Guardar credenciales locales si corresponde
+      if (provider === "local") {
+        await crud.setLocalCredentials(usuario.id, passwordHash, passwordSalt);
       }
     }
 
-    // 6️⃣ Generar tokens
-    const accessToken = generateAccessToken(usuario);
-    const refreshRaw = generateRefreshToken();
-    const refreshHash = hashRefreshToken(refreshRaw);
 
-    // 7️⃣ Crear sesión
-    await sesionesCRUD.create({
+    /* ------------------------------------------------
+       4) LOGIN LOCAL → validar contraseña o crear si falta
+    --------------------------------------------------*/
+    if (provider === "local") {
+
+      if (!password) {
+        throw new Error("Debe enviar una contraseña para login local");
+      }
+
+      let credenciales = await crud.getLocalCredentials(usuario.id);
+
+      // 🟡 Caso 1: usuario local pero NO tiene credenciales → crearlas
+      if (!credenciales || !credenciales.password_hash || !credenciales.password_salt) {
+        const pass = await func.hashPassword(password);
+
+        await crud.setLocalCredentials(usuario.id, pass.hash, pass.salt);
+
+        credenciales = {
+          password_hash: pass.hash,
+          password_salt: pass.salt
+        };
+      }
+
+      // 🟢 Validar contraseña
+      const passwordOk = await func.verifyPassword(
+        password,
+        credenciales.password_hash,
+        credenciales.password_salt
+      );
+
+
+      if (!passwordOk) {
+        throw new Error("Contraseña incorrecta");
+      }
+    }
+
+
+    /* ------------------------------------------------
+       5) Asignar rol por defecto
+    --------------------------------------------------*/
+    const rolesUsuario = await crud.getUserRoles(usuario.id);
+
+    if (rolesUsuario.length === 0) {
+      const roles = await crud.getUserRolesAll();
+      const rolBasico = roles.find(r => r.nombre === "basico" || r.nombre === "visor");
+
+      if (!rolBasico) throw new Error("No se encontró rol básico");
+
+      await crud.assignRoleToUser({
+        usuario_id: usuario.id,
+        id: rolBasico.id,
+        created_at: new Date().toISOString()
+      });
+    }
+
+
+    /* ------------------------------------------------
+       6) Crear tokens
+    --------------------------------------------------*/
+    const accessToken = await func.generateAccessToken(usuario.id);
+    const refreshRaw = func.generateRefreshToken();
+    const refreshHash = func.hashRefreshToken(refreshRaw);
+
+
+    /* ------------------------------------------------
+       7) Crear sesión
+    --------------------------------------------------*/
+    const ip = event?.requestContext?.identity?.sourceIp || "0.0.0.0";
+    const userAgent = event?.headers?.["User-Agent"] || "desconocido";
+
+    const user_session = {
       usuario_id: usuario.id,
       refresh_token_hash: refreshHash,
-      user_agent: 'N/A',
-      ip_address: 'N/A',
-      dispositivo: 'N/A',
+      user_agent: userAgent,
+      ip_address: ip,
+      dispositivo: userAgent.includes("Mobile") ? "mobile" : "desktop",
       valido: true,
       created_at: new Date().toISOString(),
-      expire_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 días
-    });
+      expire_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    };
 
-    // 8️⃣ Retornar usuario limpio + tokens
-    return createSessionObject(usuario, {
+    await crud.createSession(user_session);
+
+
+    /* ------------------------------------------------
+       8) Retornar respuesta final
+    --------------------------------------------------*/
+    return {
+      usuario: {
+        id: usuario.id,
+        email: usuario.email,
+        provider: usuario.provider,
+        nombre: JSON.parse(usuario.metadata || "{}").nombre
+      },
       access_token: accessToken,
       refresh_token: refreshRaw
-    });
+    };
 
   } catch (error) {
     throw new Error(`Login failed: ${error.message}`);
   }
-}
+};
 
 
+export const handler = withAuth(handlerLocal);
 
 
-
-
-export const handler = withAuth(handlerLocal)

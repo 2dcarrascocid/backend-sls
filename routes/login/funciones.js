@@ -1,204 +1,177 @@
-
-import { supabase } from '../../services/db.js'
+// login/funciones.js
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import * as crud from "./crud_login.js";
 
-/* -------------------------------------------------------
-   🔧 CONFIG
-------------------------------------------------------- */
-const ACCESS_TOKEN_EXPIRES = "30m"; // configurable
-const REFRESH_TOKEN_EXPIRES_DAYS = 30;
-const JWT_SECRET = process.env.JWT_SECRET;
+/* ---------------------------------------------------------
+   CONFIGURACIÓN GENERAL
+--------------------------------------------------------- */
 
-/* -------------------------------------------------------
-   🛠 UTILIDADES GENERALES
-------------------------------------------------------- */
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "access-secret";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "refresh-secret";
 
-// Normaliza email (mantiene único el login)
+const ACCESS_TOKEN_EXP = "15m"; // recomendado
+const REFRESH_TOKEN_BYTES = 64; // length de refresh token
+
+/* ---------------------------------------------------------
+   ✨ NORMALIZACIÓN
+--------------------------------------------------------- */
+
 export function normalizeEmail(email) {
+  if (!email) return null;
   return email.trim().toLowerCase();
 }
 
-// Elimina campos sensibles antes de retornar al cliente
-export function sanitizeUserData(user) {
-  if (!user) return null;
-  const { password_hash, ...safeUser } = user;
-  return safeUser;
-}
+/* ---------------------------------------------------------
+   🔐 HASH DE PASSWORD (PBKDF2 / crypto)
+--------------------------------------------------------- */
 
-// Crea estructura estándar para sesión
-export function createSessionObject(user, tokens) {
-  return {
-    user: sanitizeUserData(user),
-    tokens,
-  };
-}
+export function hashPassword(password) {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16).toString("hex");
 
-/* -------------------------------------------------------
-   🔐 MANEJO DE CONTRASEÑAS
-------------------------------------------------------- */
+    crypto.pbkdf2(password, salt, 310000, 32, "sha256", (err, hashed) => {
+      if (err) return reject(err);
 
-// Hashea contraseña
-export async function hashPassword(password) {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
-}
-
-// Verifica contraseña contra hash
-export async function verifyPassword(password, hash) {
-  return await bcrypt.compare(password, hash);
-}
-
-/* -------------------------------------------------------
-   🔑 MANEJO DE TOKENS
-------------------------------------------------------- */
-
-// Genera access token (JWT)
-export function generateAccessToken(user) {
-  return jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      perfil_id: user.perfil_id,
-    },
-    JWT_SECRET,
-    { expiresIn: ACCESS_TOKEN_EXPIRES }
-  );
-}
-
-// Genera refresh token raw (string aleatoria)
-export function generateRefreshToken() {
-  return crypto.randomBytes(40).toString("hex");
-}
-
-// Hashea refresh token para almacenarlo
-export function hashRefreshToken(token) {
-  return crypto.createHash("sha256").update(token).digest("hex");
-}
-
-/* -------------------------------------------------------
-   🔒 BLACKLIST Y CONTROL DE TOKENS
-------------------------------------------------------- */
-
-// Inserta token en blacklist
-export async function blacklistToken(refreshTokenHash) {
-  await supabase.from("el_dep_refresh_blacklist").insert([
-    {
-      token_hash: refreshTokenHash,
-      invalidated_at: new Date().toISOString(),
-    },
-  ]);
-}
-
-// Verifica si token está en blacklist
-export async function isTokenBlacklisted(refreshTokenHash) {
-  const { data } = await supabase
-    .from("el_dep_refresh_blacklist")
-    .select("id")
-    .eq("token_hash", refreshTokenHash)
-    .maybeSingle();
-
-  return !!data;
-}
-
-/* -------------------------------------------------------
-   🧩 ROLES Y PERMISOS
-------------------------------------------------------- */
-
-// Verifica si usuario tiene un rol requerido
-export async function validateRole(userId, requiredRoleName) {
-  const { data } = await supabase
-    .from("el_dep_roles")
-    .select("nombre")
-    .eq("id", userId)
-    .single();
-
-  if (!data) return false;
-  return data.nombre === requiredRoleName;
-}
-
-// Verifica si usuario tiene permiso específico
-export async function validatePermission(userId, permissionName) {
-  const { data } = await supabase
-    .from("el_dep_usuarios_roles")
-    .select(
-      `
-      perfiles:perfil_id (
-        permisos:permisos (
-          nombre
-        )
-      )
-    `
-    )
-    .eq("usuario_id", userId);
-
-  if (!data || data.length === 0) return false;
-
-  const permisos = data.flatMap((r) => r.perfiles.permisos.map((p) => p.nombre));
-  return permisos.includes(permissionName);
-}
-
-/* -------------------------------------------------------
-   🌐 SOCIAL LOGIN (Google / Facebook / Instagram)
-------------------------------------------------------- */
-
-// Base: recibe los datos ya validados del proveedor
-export async function loginSocialBase({ email, nombre, provider, provider_id }) {
-  const emailNorm = normalizeEmail(email);
-
-  // 1. Buscar si existe
-  const { data: usuario } = await supabase
-    .from("el_dep_usuarios")
-    .select("*")
-    .eq("email", emailNorm)
-    .maybeSingle();
-
-  // 2. Si no existe → crear usuario básico
-  let finalUser = usuario;
-
-  if (!finalUser) {
-    const { data: nuevo } = await supabase
-      .from("el_dep_usuarios")
-      .insert([
-        {
-          email: emailNorm,
-          nombre,
-          provider,
-          provider_id,
-          created_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
-
-    finalUser = nuevo;
-  }
-
-  // 3. Generar tokens
-  const refreshRaw = generateRefreshToken();
-  const refreshHash = hashRefreshToken(refreshRaw);
-
-  await supabase.from("el_dep_refresh_tokens").insert([
-    {
-      usuario_id: finalUser.id,
-      token_hash: refreshHash,
-      expires_at: new Date(Date.now() + REFRESH_TOKEN_EXPIRES_DAYS * 86400000)
-        .toISOString(),
-    },
-  ]);
-
-  const access = generateAccessToken(finalUser);
-
-  return createSessionObject(finalUser, {
-    access_token: access,
-    refresh_token: refreshRaw,
+      resolve({
+        hash: hashed.toString("hex"),
+        salt,
+      });
+    });
   });
 }
 
+export function verifyPassword(password, hash, salt) {
+    return new Promise((resolve, reject) => {
+      if (!salt || !hash) {
+        return reject(new Error("Salt o hash inválido"));
+      }
+  
+      crypto.pbkdf2(password, salt, 310000, 32, "sha256", (err, hashed) => {
+        if (err) return reject(err);
+  
+        resolve(hashed.toString("hex") === hash);
+      });
+    });
+  }
+  
 
+// export function verifyPassword(password, storedHash) {
+//   return new Promise((resolve, reject) => {
+//     const [salt, hash] = storedHash.includes(":")
+//       ? storedHash.split(":") // formato hash:salt (legacy)
+//       : [null, storedHash];
 
+//     if (!salt) return reject(new Error("Salt inválido"));
 
+//     crypto.pbkdf2(password, salt, 310000, 32, "sha256", (err, hashed) => {
+//       if (err) return reject(err);
+//       resolve(hashed.toString("hex") === hash);
+//     });
+//   });
+// }
 
+/* ---------------------------------------------------------
+   🔐 GENERACIÓN DE TOKENS (JWT)
+--------------------------------------------------------- */
 
+export async function generateAccessToken(userId) {
+
+const rol = await crud.getUserRolesDet(userId)
+
+  const payload = {
+    sub: userId,
+    roles: rol
+  };
+
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXP });
+}
+
+/* ---------------------------------------------------------
+   🔃 GENERACIÓN DE REFRESH TOKEN (secure)
+--------------------------------------------------------- */
+
+export function generateRefreshToken() {
+  return crypto.randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
+}
+
+/* ---------------------------------------------------------
+   🔏 HASH DE REFRESH TOKEN (para almacenar en BD)
+--------------------------------------------------------- */
+
+export function hashRefreshToken(refreshToken) {
+  return crypto.createHash("sha256").update(refreshToken).digest("hex");
+}
+
+/* ---------------------------------------------------------
+   🧹 SANITIZACIÓN DE USUARIO
+--------------------------------------------------------- */
+
+export function sanitizeUserData(user) {
+  if (!user) return null;
+
+  const clean = { ...user };
+  delete clean.password_hash;
+  delete clean.password_salt;
+  delete clean.refresh_token_hash;
+
+  return clean;
+}
+
+/* ---------------------------------------------------------
+   🔐 VALIDADOR DE ROLES Y PERMISOS
+--------------------------------------------------------- */
+
+export function hasRole(userRoles, requiredRole) {
+  return userRoles.includes(requiredRole);
+}
+
+export function hasPermission(userPermissions, requiredPermission) {
+  return userPermissions.includes(requiredPermission);
+}
+
+/* ---------------------------------------------------------
+   📦 RESPUESTA ESTÁNDAR DE LOGIN
+--------------------------------------------------------- */
+
+export function buildAuthResponse({
+  user,
+  roles,
+  permisos,
+  accessToken,
+  refreshToken,
+  sessionId,
+}) {
+  return {
+    usuario: sanitizeUserData(user),
+    roles,
+    permisos,
+    tokens: {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      session_id: sessionId,
+    },
+  };
+}
+
+/* ---------------------------------------------------------
+   🧰 CONSTRUCCIÓN DE DATOS DE SESIÓN
+--------------------------------------------------------- */
+
+export function buildSessionMetadata(event) {
+  return {
+    userAgent: event.headers["User-Agent"] || "unknown",
+    ip: event.headers["X-Forwarded-For"] || "127.0.0.1",
+    device: event.headers["X-Device"] || "unknown",
+  };
+}
+
+/* ---------------------------------------------------------
+   🧱 GENERAR EXPIRACIÓN PARA REFRESH TOKEN
+--------------------------------------------------------- */
+
+export function refreshTokenExpireAt(days = 30) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
+}
