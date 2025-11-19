@@ -4,3 +4,10 @@ loginBasic:
     - httpApi:
         path: /login/basic
         method: post
+
+loginGoogle:
+  handler: routes/login/loginGoogle.handler
+  events:
+    - httpApi:
+        path: /login/google/{id}
+        method: get

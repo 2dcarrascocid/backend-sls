@@ -2,6 +2,8 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import * as crud from "./crud_login.js";
+import axios from "axios";
+import { OAuth2Client } from "google-auth-library";
 
 /* ---------------------------------------------------------
    CONFIGURACIÓN GENERAL
@@ -85,6 +87,46 @@ const rol = await crud.getUserRolesDet(userId)
   };
 
   return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXP });
+}
+
+export async function verifyGoogleToken(idToken) {
+  const expectedAudience = process.env.GOOGLE_CLIENT_ID;
+try {
+    if (!idToken) throw new Error("Token de Google no enviado");
+
+    const client = new OAuth2Client(expectedAudience);
+
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: expectedAudience,
+    });
+
+    const payload = ticket.getPayload();
+
+    return payload; // email, name, picture, sub, etc.
+
+  } catch (error) {
+    console.error("❌ Error verificando token de Google:", error);
+    throw new Error("Token de Google inválido");
+  }
+
+}
+
+
+/**
+ * Convierte clave JWK de Google a PEM (formato necesario para JWT.verify)
+ */
+function jwkToPem(jwk) {
+  const { e, n } = jwk;
+  const pubKey = {
+    kty: "RSA",
+    n: n,
+    e: e
+  };
+
+  // jwt no trae jwkToPem, así que usamos implementación interna
+  const { JWK } = require("jose");
+  return JWK.asKey(pubKey).toPEM(false);
 }
 
 /* ---------------------------------------------------------

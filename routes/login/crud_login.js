@@ -216,7 +216,6 @@ export async function assignRoleToUser(usuario) {
 ----------------------------------------- */
 
 export async function createSession(user) {
-    console.log("user_session::::",user)
     const {usuario_id,
         refresh_token_hash,
         user_agent,
