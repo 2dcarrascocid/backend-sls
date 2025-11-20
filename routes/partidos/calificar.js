@@ -267,7 +267,8 @@ export const handlerLocal = async (event) => {
     console.error('Error en calificar:', error)
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error interno del servidor' })
+      // body: JSON.stringify({ error: 'Error interno del servidor' })
+      body: JSON.stringify({ error}),
     }
   }
 }
