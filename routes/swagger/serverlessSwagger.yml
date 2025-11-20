@@ -1,5 +1,5 @@
 swaggerDocs:
-  handler: swaggerDocs.handler
+  handler: routes/swagger/swaggerDocs.handler
   events:
     - httpApi:
         path: /docs

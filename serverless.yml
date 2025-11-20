@@ -27,6 +27,7 @@ provider:
         - X-Api-Key
         - Authorization
         - X-Requested-With
+        - X-Requested-With
       allowedMethods:
         - GET
         - POST
@@ -34,11 +35,8 @@ provider:
         - DELETE
         - OPTIONS
       allowCredentials: false
-
-
+      
 functions:
-
-
   - ${file(./routes/login/serverlessLogin.yml)}
   - ${file(./routes/partidos/serverlessPartidos.yml)}
   - ${file(./routes/jugadores/serverlessJugadores.yml)}
@@ -46,6 +44,7 @@ functions:
 
 plugins:
   - serverless-offline
+  
 
 package:
   individually: true
@@ -65,4 +64,6 @@ custom:
     platform: node
     external:
       - aws-sdk
+  serverless-offline:
+    disableCookieValidation: true
       
