@@ -63,6 +63,7 @@ import { withAuth } from '../../services/withAuth.js'
  */
 
 export const handlerLocal = async (event) => {
+  console.log("actulizar :::", event)
   try {
     const body = JSON.parse(event.body || "{}");
     const { id, ...updates } = body;

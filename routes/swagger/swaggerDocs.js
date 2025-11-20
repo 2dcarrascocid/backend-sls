@@ -1,3 +1,4 @@
+import path from "path";
 import pkg from "swagger-jsdoc";
 const swaggerJSDoc = pkg.default || pkg;
 
@@ -9,7 +10,8 @@ const options = {
       version: "1.0.0",
     },
   },
-  apis: ["./routes/**/*.js"],
+  // SOLO tus archivos swagger
+  apis: [path.resolve("routes/**/*.js")],
 };
 
 export const handler = async () => {

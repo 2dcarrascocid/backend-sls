@@ -17,7 +17,8 @@
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
     "serverless-http": "^4.0.0",
-    "swagger-jsdoc": "^6.2.8"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-dist": "^5.30.2"
   },
   "description": "",
   "devDependencies": {

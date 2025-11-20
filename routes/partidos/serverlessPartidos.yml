@@ -1,12 +1,12 @@
 buscarPartidos:
-  handler: buscar.handler
+  handler: routes/partidos/buscar.handler
   events:
     - httpApi:
         path: /partidos/buscar
         method: get
 
 partidoAsistencia:
-  handler: asistencia.handler
+  handler: routes/partidos/asistencia.handler
   events:
     - httpApi:
         path: /partidos/asistencia
@@ -19,7 +19,7 @@ partidoAsistencia:
         method: delete
 
 asistenciaEstado:
-  handler: asistencia_estado.handler
+  handler: routes/partidos/asistencia_estado.handler
   events:
     - httpApi:
         path: /partidos/asistencia-estado
@@ -32,7 +32,7 @@ asistenciaEstado:
         method: delete
 
 calificarPartido:
-  handler: calificar.handler
+  handler: routes/partidos/calificar.handler
   events:
     - httpApi:
         path: /partidos/calificar
@@ -45,8 +45,15 @@ calificarPartido:
         method: delete
 
 partidosJugador:
-  handler: jugadores_partidos.handler
+  handler: routes/partidos/jugadores_partidos.handler
   events:
     - httpApi:
         path: /partidos/jugador
         method: get
+
+createPartido:
+  handler: routes/partidos/create.handler
+  events:
+    - httpApi:
+        path: /partidos
+        method: post
