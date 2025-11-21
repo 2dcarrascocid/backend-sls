@@ -1,6 +1,6 @@
 import { supabase } from '../../services/db.js'
-import { withAuth } from '../../services/withAuth.js'
-
+import { withAuth } from '../../utils/withAuth.js'
+import { withJsonResponse } from '../../utils/withJsonResponse.js'
 /**
  * @swagger
  * /partidos/jugador:
@@ -179,4 +179,4 @@ const getPartidosPorJugador = async (event) => {
   }
 };
 
-export const handler = withAuth(getPartidosPorJugador)
+export const handler = withAuth(withJsonResponse(handlerLocal));

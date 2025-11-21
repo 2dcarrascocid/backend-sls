@@ -42,7 +42,7 @@
  */
 
 
-import { withAuth } from '../../services/withAuth.js'
+import { withAuth } from '../../utils/withAuth.js'
 import * as crud from "./crud_login.js";
 import * as func from "./funciones.js";
 
@@ -209,6 +209,6 @@ export const handlerLocal = async (event) => {
 };
 
 
-export const handler = withAuth(handlerLocal);
+export const handler = withAuth(withJsonResponse(handlerLocal));
 
 

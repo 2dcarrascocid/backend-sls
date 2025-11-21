@@ -1,5 +1,6 @@
 import { supabase } from '../../services/db.js'
-import { withAuth } from '../../services/withAuth.js'
+import { withAuth } from '../../utils/withAuth.js'
+import { withJsonResponse } from '../../utils/withJsonResponse.js'
 import crypto from "crypto" // solo por si quieres validar el uuid
 
 /**
@@ -121,4 +122,4 @@ export const handlerLocal = async (event) => {
   }
 }
 
-export const handler = withAuth(handlerLocal)
+export const handler = withAuth(withJsonResponse(handlerLocal));
