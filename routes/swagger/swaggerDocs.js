@@ -1,42 +1,39 @@
+import fs from "fs";
 import path from "path";
-import pkg from "swagger-jsdoc";
-const swaggerJSDoc = pkg.default || pkg;
-
-const options = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "API Fair Play Chile",
-      version: "1.0.0",
-    },
-  },
-  // SOLO tus archivos swagger
-  apis: [path.resolve("routes/**/*.js")],
-};
 
 export const handler = async () => {
   try {
-    console.log("Generando Swagger spec...");
-    const spec = swaggerJSDoc(options);
+    // 🟩 Ruta ABSOLUTA siempre correcta, offline y deploy
+    const swaggerPath = path.join(process.cwd(), "swagger.json");
+
+    console.log("Swagger path:", swaggerPath);
+
+    if (!fs.existsSync(swaggerPath)) {
+      throw new Error(`No se encontró swagger.json en: ${swaggerPath}`);
+    }
+
+    const raw = fs.readFileSync(swaggerPath, "utf8");
+    const spec = JSON.parse(raw);
 
     const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Swagger UI</title>
-        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
-      </head>
-      <body>
-        <div id="swagger"></div>
-        <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-        <script>
-          SwaggerUIBundle({
-            spec: ${JSON.stringify(spec)},
-            dom_id: '#swagger'
-          });
-        </script>
-      </body>
-    </html>`;
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API Fair Play Chile</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+  </head>
+  <body>
+    <div id="swagger"></div>
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script>
+      SwaggerUIBundle({
+        spec: ${JSON.stringify(spec)},
+        dom_id: '#swagger'
+      });
+    </script>
+  </body>
+</html>
+`;
 
     return {
       statusCode: 200,
@@ -45,13 +42,18 @@ export const handler = async () => {
     };
   } catch (err) {
     console.error("ERROR SWAGGER:", err);
+
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        message: "Swagger error",
-        error: err.message,
-        stack: err.stack,
-      }),
+      body: JSON.stringify(
+        {
+          message: "Swagger error",
+          error: err.message,
+          stack: err.stack,
+        },
+        null,
+        2
+      ),
     };
   }
 };

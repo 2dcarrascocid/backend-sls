@@ -1,0 +1,927 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Fair Play Chile",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/jugadores/actualizar": {
+      "put": {
+        "summary": "Actualizar datos de un jugador",
+        "description": "Actualiza los campos editables de un jugador existente en la tabla `jugadores`.",
+        "tags": [
+          "Jugadores"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "b8a8e2f0-30a3-4c8a-8c1b-5c6f3c2e7f21"
+                  },
+                  "nombre": {
+                    "type": "string",
+                    "example": "Carlos Torres"
+                  },
+                  "apellidos": {
+                    "type": "string",
+                    "example": "Sánchez López"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "carlos@example.com"
+                  },
+                  "username": {
+                    "type": "string",
+                    "example": "carlitos7"
+                  },
+                  "avatar_url": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                  },
+                  "telefono": {
+                    "type": "string",
+                    "example": "+56998765432"
+                  },
+                  "posicion": {
+                    "type": "string",
+                    "example": "Mediocampista"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Jugador actualizado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Jugador actualizado exitosamente"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Faltan parámetros o ID inválido"
+          },
+          "404": {
+            "description": "Jugador no encontrado"
+          }
+        }
+      }
+    },
+    "/jugadores": {
+      "post": {
+        "summary": "Crear un nuevo jugador",
+        "description": "Crea un nuevo registro en la tabla `jugadores` en Supabase.",
+        "tags": [
+          "Jugadores"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "owner_id",
+                  "nombre",
+                  "posicion"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "owner_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "posicion": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "required": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Jugador creado correctamente"
+          },
+          "400": {
+            "description": "Error de validación"
+          }
+        }
+      }
+    },
+    "/jugadores/{id}": {
+      "get": {
+        "summary": "Obtener un jugador por su ID",
+        "description": "Retorna los datos del jugador con el ID especificado.",
+        "tags": [
+          "Jugadores"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID (uuid) del jugador",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Jugador encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "nombre": {
+                      "type": "string"
+                    },
+                    "posicion": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "apellidos": {
+                      "type": "string"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "avatar_url": {
+                      "type": "string"
+                    },
+                    "telefono": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Jugador no encontrado"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      }
+    },
+    "/login/basic": {
+      "post": {
+        "summary": "Login básico o con proveedor externo",
+        "description": "Permite iniciar sesión con email/password o mediante Google, Facebook, Instagram usando external_id. Si el usuario no existe, se crea automáticamente con un perfil BÁSICO.\n",
+        "tags": [
+          "Login"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "usuario@mail.com"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "external_id": {
+                    "type": "string",
+                    "example": "provider_99339922"
+                  },
+                  "origen": {
+                    "type": "string",
+                    "enum": [
+                      "local",
+                      "google",
+                      "facebook",
+                      "instagram"
+                    ],
+                    "example": "google"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso"
+          },
+          "400": {
+            "description": "Datos incompletos"
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      }
+    },
+    "/partidos/asistencia-estado": {
+      "get": {
+        "summary": "Lista las asistencias de un partido",
+        "description": "Devuelve todos los registros de asistencia con su estado para un partido.",
+        "tags": [
+          "Asistencia"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partido_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "ID del partido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de asistencias del partido"
+          },
+          "400": {
+            "description": "Falta partido_id"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      },
+      "post": {
+        "summary": "Registra o actualiza el estado de asistencia de un jugador",
+        "description": "Crea o actualiza un registro de asistencia según el jugador y partido indicados.",
+        "tags": [
+          "Asistencia"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "partido_id",
+                  "jugador_id",
+                  "estado"
+                ],
+                "properties": {
+                  "partido_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "jugador_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "confirmed",
+                      "maybe",
+                      "no"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asistencia creada o actualizada"
+          },
+          "500": {
+            "description": "Error al guardar la asistencia"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Elimina el registro de asistencia de un jugador",
+        "description": "El jugador puede eliminar su registro de asistencia del partido.",
+        "tags": [
+          "Asistencia"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partido_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "jugador_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asistencia eliminada"
+          },
+          "404": {
+            "description": "No se encontró el registro"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      }
+    },
+    "/partidos/asistencia": {
+      "get": {
+        "summary": "Lista jugadores que asisten a un partido",
+        "description": "Devuelve todos los jugadores registrados como asistentes en un partido.",
+        "tags": [
+          "Partido Jugador"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partido_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "ID del partido para listar asistentes"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de jugadores asistentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asistentes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "partido_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "jugador_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta el parámetro partido_id"
+          },
+          "500": {
+            "description": "Error al obtener asistentes"
+          }
+        }
+      },
+      "post": {
+        "summary": "Confirma asistencia de un jugador",
+        "description": "Inserta un registro en partido_jugador para confirmar asistencia al partido.",
+        "tags": [
+          "Partido Jugador"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "partido_id",
+                  "jugador_id"
+                ],
+                "properties": {
+                  "partido_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "22eec19e-ecde-4a60-97a1-5344e8cc0e5d"
+                  },
+                  "jugador_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "b2d5d19c-4a18-4a64-bd1a-4b9e1fd7f9ef"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asistencia registrada correctamente"
+          },
+          "409": {
+            "description": "El jugador ya estaba registrado en este partido"
+          },
+          "500": {
+            "description": "Error al registrar asistencia"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Elimina la asistencia de un jugador",
+        "description": "Elimina el registro de asistencia (jugador deja de asistir al partido).",
+        "tags": [
+          "Partido Jugador"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partido_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "ID del partido"
+          },
+          {
+            "in": "query",
+            "name": "jugador_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "ID del jugador"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asistencia eliminada correctamente"
+          },
+          "404": {
+            "description": "No se encontró la asistencia a eliminar"
+          },
+          "500": {
+            "description": "Error al eliminar la asistencia"
+          }
+        }
+      }
+    },
+    "/partidos/buscar": {
+      "get": {
+        "summary": "Busca partidos dinámicamente",
+        "description": "Permite filtrar partidos por cualquier campo disponible en la tabla.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filtra por ID del partido"
+          },
+          {
+            "in": "query",
+            "name": "owner_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filtra por ID del propietario"
+          },
+          {
+            "in": "query",
+            "name": "nombre",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtra por nombre del partido"
+          },
+          {
+            "in": "query",
+            "name": "fecha",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Filtra por fecha del partido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de partidos que cumplen con los filtros",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "partidos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error al buscar partidos"
+          }
+        }
+      }
+    },
+    "/partidos/calificar": {
+      "get": {
+        "summary": "Lista calificaciones de un partido",
+        "description": "Obtiene todas las calificaciones realizadas en un partido, con posibilidad de filtrar por jugador_id o calificador_id.",
+        "tags": [
+          "Calificación"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partido_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "ID del partido"
+          },
+          {
+            "in": "query",
+            "name": "jugador_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filtra por jugador calificado"
+          },
+          {
+            "in": "query",
+            "name": "calificador_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filtra por calificador"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de calificaciones"
+          },
+          "400": {
+            "description": "Falta el parámetro partido_id"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      },
+      "post": {
+        "summary": "Registra o actualiza una calificación",
+        "description": "Crea o actualiza la calificación otorgada por un jugador a otro en un partido.",
+        "tags": [
+          "Calificación"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "partido_id",
+                  "jugador_id",
+                  "calificador_id",
+                  "calificacion"
+                ],
+                "properties": {
+                  "partido_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "jugador_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Jugador que recibe la calificación"
+                  },
+                  "calificador_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Jugador que califica"
+                  },
+                  "calificacion": {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      2,
+                      3,
+                      4,
+                      5
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Calificación creada o actualizada correctamente"
+          },
+          "400": {
+            "description": "Datos incompletos"
+          },
+          "500": {
+            "description": "Error al registrar calificación"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Elimina una calificación",
+        "description": "Permite eliminar la calificación otorgada por un jugador a otro.",
+        "tags": [
+          "Calificación"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partido_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "jugador_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "calificador_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calificación eliminada correctamente"
+          },
+          "404": {
+            "description": "No se encontró la calificación"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      }
+    },
+    "/partidos": {
+      "post": {
+        "summary": "Crea un nuevo partido",
+        "tags": [
+          "Partidos"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "owner_id",
+                  "nombre",
+                  "fecha"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "4e3c59ae-0a4d-4b75-93a9-eaa2b8948df7",
+                    "description": "ID único del partido enviado por el cliente"
+                  },
+                  "owner_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "fecha": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/partidos/jugador": {
+      "get": {
+        "summary": "Obtiene los partidos pasados y pendientes de un jugador",
+        "description": "Retorna los partidos asociados a un jugador, separados en pendientes (futuros) y pasados. La solicitud requiere autenticación mediante la cabecera **x-api-key**.\n",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "jugador_id",
+            "required": true,
+            "description": "ID del jugador a consultar",
+            "schema": {
+              "type": "string",
+              "example": "15"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "description": "Cantidad máxima de registros por listado",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "example": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "description": "Cantidad de registros a omitir",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "example": 0
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-api-key",
+            "required": true,
+            "description": "API Key para autenticar la solicitud",
+            "schema": {
+              "type": "string",
+              "example": "TU_API_KEY"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Partidos obtenidos correctamente",
+            "content": {
+              "application/json": {
+                "example": {
+                  "partidos_pendientes": [
+                    {
+                      "id": 12,
+                      "fecha": "2025-11-20T23:00:00.000Z",
+                      "cancha": "Cancha 3",
+                      "equipo_local": "Tigres",
+                      "equipo_visita": "Leones"
+                    }
+                  ],
+                  "total_pendientes": 1,
+                  "partidos_pasados": [
+                    {
+                      "id": 9,
+                      "fecha": "2025-10-10T23:00:00.000Z",
+                      "cancha": "Cancha 1",
+                      "equipo_local": "Panteras",
+                      "equipo_visita": "Halcones"
+                    }
+                  ],
+                  "total_pasados": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Faltan parámetros obligatorios",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Falta el parámetro jugador_id"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Jugador no encontrado",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Jugador no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Error interno del servidor"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {},
+  "tags": []
+}
