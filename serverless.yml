@@ -12,28 +12,14 @@ provider:
     USE_DB_MOCK: ${env:USE_DB_MOCK}
     API_KEY: ${env:API_KEY}
 
-  # Esto aplica solo en AWS, no afecta a serverless-offline
-  apiGateway:
-    apiKeys:
-      - name: FplayChileApiKey
-        value: ${env:API_KEY}
-
   httpApi:
     cors:
       allowedOrigins:
         - '*'                # todos los orígenes
       allowedHeaders:
-        - Content-Type
-        - X-Api-Key
-        - Authorization
-        - X-Requested-With
-        - X-Requested-With
+        - '*' 
       allowedMethods:
-        - GET
-        - POST
-        - PUT
-        - DELETE
-        - OPTIONS
+        - '*'  
       allowCredentials: false
       
 functions:
@@ -49,14 +35,21 @@ plugins:
 package:
   individually: true
   exclude:
-    - .git/**
-    - test/**
-    - docs/**
-    - .env
-    - README.md
-    - awscliv2.zip
+    - node_modules/**
+    - .serverless/**
+    - .webpack/**
+    - logs/**
+    - tmp/**
+    - data/**
+    - "**/*.map"
+    - "**/*.zip"
+    - "**/*.md"
+    - "**/*.log"
 
-custom:
+
+
+
+build:
   esbuild:
     bundle: true
     minify: true
@@ -64,6 +57,8 @@ custom:
     platform: node
     external:
       - aws-sdk
+
+custom:
   serverless-offline:
     disableCookieValidation: true
       

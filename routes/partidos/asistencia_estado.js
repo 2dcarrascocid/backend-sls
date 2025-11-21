@@ -111,7 +111,7 @@ export const handlerLocal = async (event) => {
       }
 
       const { data, error } = await supabase
-        .from('asistencia')
+        .from('asistencias')
         .select('*')
         .eq('partido_id', partido_id)
 
