@@ -2,7 +2,9 @@
   "openapi": "3.0.0",
   "info": {
     "title": "API Fair Play Chile",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "x-updated-at": "2025-11-22T00:21:00.052Z",
+    "description": "\n        Documentación oficial de la API Fair Play Chile.\n        Última actualización: 21/11/2025, 21:21:00\n      "
   },
   "paths": {
     "/jugadores/actualizar": {

@@ -7,7 +7,9 @@
     "dev": "serverless offline --stage dev",
     "deploy": "serverless deploy",
     "remove": "serverless remove",
-    "generate:swagger": "node scripts/generate-swagger.js"
+    "generate:swagger": "node scripts/generate-swagger.js",
+    "sync:swagger": "node scripts/sync-swagger.js",
+    "deploy:all": "serverless deploy && npm run sync:swagger"
   },
   "keywords": [],
   "author": "",

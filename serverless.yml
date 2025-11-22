@@ -26,7 +26,6 @@ functions:
   - ${file(./routes/login/serverlessLogin.yml)}
   - ${file(./routes/partidos/serverlessPartidos.yml)}
   - ${file(./routes/jugadores/serverlessJugadores.yml)}
-  - ${file(./routes/swagger/serverlessSwagger.yml)}
 
 plugins:
   - serverless-offline
