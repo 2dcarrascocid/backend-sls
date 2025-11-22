@@ -3,8 +3,8 @@
   "info": {
     "title": "API Fair Play Chile",
     "version": "1.0.0",
-    "x-updated-at": "2025-11-22T00:21:00.052Z",
-    "description": "\n        Documentación oficial de la API Fair Play Chile.\n        Última actualización: 21/11/2025, 21:21:00\n      "
+    "x-updated-at": "2025-11-22T19:17:12.015Z",
+    "description": "\n        Documentación oficial de la API Fair Play Chile.\n        Última actualización: 22/11/2025, 16:17:12\n      "
   },
   "paths": {
     "/jugadores/actualizar": {
@@ -267,6 +267,290 @@
           },
           "500": {
             "description": "Error interno del servidor"
+          }
+        }
+      }
+    },
+    "/parametros/categories": {
+      "post": {
+        "summary": "Crea una nueva categoría",
+        "tags": [
+          "Parametros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tournament_id",
+                  "name",
+                  "gender"
+                ],
+                "properties": {
+                  "tournament_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female",
+                      "mixed"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Categoría creada"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      },
+      "get": {
+        "summary": "Obtiene todas las categorías",
+        "tags": [
+          "Parametros"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tournament_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filtrar por torneo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de categorías"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      }
+    },
+    "/parametros/organizations": {
+      "post": {
+        "summary": "Crea una nueva organización",
+        "tags": [
+          "Parametros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "slug"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "website": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Organización creada"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      },
+      "get": {
+        "summary": "Obtiene todas las organizaciones",
+        "tags": [
+          "Parametros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de organizaciones"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      }
+    },
+    "/parametros/seasons": {
+      "post": {
+        "summary": "Crea una nueva temporada",
+        "tags": [
+          "Parametros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "organization_id",
+                  "name",
+                  "start_date",
+                  "end_date"
+                ],
+                "properties": {
+                  "organization_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "start_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "end_date": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Temporada creada"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      },
+      "get": {
+        "summary": "Obtiene todas las temporadas",
+        "tags": [
+          "Parametros"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organization_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filtrar por organización"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de temporadas"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      }
+    },
+    "/parametros/tournaments": {
+      "post": {
+        "summary": "Crea un nuevo torneo",
+        "tags": [
+          "Parametros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "season_id",
+                  "name",
+                  "status",
+                  "type"
+                ],
+                "properties": {
+                  "season_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "active",
+                      "finished"
+                    ]
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "league",
+                      "cup",
+                      "groups"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Torneo creado"
+          },
+          "500": {
+            "description": "Error interno"
+          }
+        }
+      },
+      "get": {
+        "summary": "Obtiene todos los torneos",
+        "tags": [
+          "Parametros"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "season_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filtrar por temporada"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de torneos"
+          },
+          "500": {
+            "description": "Error interno"
           }
         }
       }

@@ -1,0 +1,55 @@
+createOrganization:
+  handler: routes/parametros/organizations.handler
+  events:
+    - httpApi:
+        path: /parametros/organizations
+        method: post
+
+getOrganizations:
+  handler: routes/parametros/organizations.getHandler
+  events:
+    - httpApi:
+        path: /parametros/organizations
+        method: get
+
+createSeason:
+  handler: routes/parametros/seasons.handler
+  events:
+    - httpApi:
+        path: /parametros/seasons
+        method: post
+
+getSeasons:
+  handler: routes/parametros/seasons.getHandler
+  events:
+    - httpApi:
+        path: /parametros/seasons
+        method: get
+
+createTournament:
+  handler: routes/parametros/tournaments.handler
+  events:
+    - httpApi:
+        path: /parametros/tournaments
+        method: post
+
+getTournaments:
+  handler: routes/parametros/tournaments.getHandler
+  events:
+    - httpApi:
+        path: /parametros/tournaments
+        method: get
+
+createCategory:
+  handler: routes/parametros/categories.handler
+  events:
+    - httpApi:
+        path: /parametros/categories
+        method: post
+
+getCategories:
+  handler: routes/parametros/categories.getHandler
+  events:
+    - httpApi:
+        path: /parametros/categories
+        method: get
