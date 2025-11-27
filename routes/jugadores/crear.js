@@ -58,6 +58,38 @@ export const handlerLocal = async (event) => {
       }
     }
 
+    // 1. Verificar si ya existe un jugador con ese ID o Email
+    let query = supabase.from("jugadores").select("*");
+
+    if (email) {
+      // Si hay email, buscamos por ID O Email
+      query = query.or(`id.eq.${id},email.eq.${email}`);
+    } else {
+      // Si no hay email, solo buscamos por ID
+      query = query.eq("id", id);
+    }
+
+    const { data: existingPlayer, error: searchError } = await query.maybeSingle();
+
+    if (searchError) {
+      console.error("Error buscando jugador existente:", searchError);
+      // No bloqueamos, intentamos crear y si falla la BD lo dirá, o retornamos error?
+      // Mejor retornar error 500 si falla la búsqueda para evitar inconsistencias.
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Error al verificar existencia del jugador" }),
+      };
+    }
+
+    // Si existe, lo retornamos
+    if (existingPlayer) {
+      return {
+        statusCode: 200, // OK (no Created)
+        body: JSON.stringify({ jugador: existingPlayer }),
+      };
+    }
+
+    // 2. Si no existe, procedemos a crear
     const created_at = new Date().toISOString();
 
     // Construcción dinámica del objeto a insertar
