@@ -46,7 +46,7 @@ import { withJsonResponse } from '../../utils/withJsonResponse.js'
  *
  *   post:
  *     summary: Confirma asistencia de un jugador
- *     description: Inserta un registro en partido_jugador para confirmar asistencia al partido.
+ *     description: Inserta un registro en Asistencias para confirmar asistencia al partido.
  *     tags:
  *       - Partido Jugador
  *     requestBody:
@@ -132,7 +132,7 @@ export const handlerLocal = async (event) => {
       }
 
       const { data, error } = await supabase
-        .from('partido_jugador')
+        .from('asistencias')
         .select('*')
         .eq('partido_id', partido_id)
 
@@ -156,7 +156,7 @@ export const handlerLocal = async (event) => {
 
       // Verificar si ya existe
       const { data: existente } = await supabase
-        .from('partido_jugador')
+        .from('asistencias')
         .select('*')
         .eq('partido_id', partido_id)
         .eq('jugador_id', jugador_id)
@@ -170,7 +170,7 @@ export const handlerLocal = async (event) => {
       }
 
       const { data, error } = await supabase
-        .from('partido_jugador')
+        .from('asistencias')
         .insert([
           {
             partido_id,
@@ -200,7 +200,7 @@ export const handlerLocal = async (event) => {
       }
 
       const { data, error } = await supabase
-        .from('partido_jugador')
+        .from('asistencias')
         .delete()
         .eq('partido_id', partido_id)
         .eq('jugador_id', jugador_id)
@@ -231,7 +231,7 @@ export const handlerLocal = async (event) => {
     return {
       statusCode: 500,
       // body: JSON.stringify({ error: 'Error interno del servidor' })
-      body: JSON.stringify({ error}),
+      body: JSON.stringify({ error }),
     }
   }
 }

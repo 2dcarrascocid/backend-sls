@@ -83,7 +83,7 @@ import { withJsonResponse } from '../../utils/withJsonResponse.js'
  */
 
 
-const getPartidosPorJugador = async (event) => {
+const handlerLocal = async (event) => {
   try {
     const { jugador_id, limit = 10, offset = 0 } = event.queryStringParameters || {};
 
@@ -114,7 +114,7 @@ const getPartidosPorJugador = async (event) => {
 
     // 2️⃣ Obtener IDs de partidos desde la tabla relación
     const { data: relaciones, error: relError } = await supabase
-      .from("partido_jugador")
+      .from("asistencias")
       .select("partido_id")
       .eq("jugador_id", jugador_id);
 
@@ -174,7 +174,7 @@ const getPartidosPorJugador = async (event) => {
     return {
       statusCode: 500,
       // body: JSON.stringify({ error: "Error interno del servidor" }),
-      body: JSON.stringify({ error}),
+      body: JSON.stringify({ error }),
     };
   }
 };

@@ -79,7 +79,7 @@ export const handlerLocal = async (event) => {
         // Actualizar en Supabase
         const { data, error } = await supabase
             .from('solicitudes_ingreso_partido')
-            .update({ estado: estado, fech_respuesta: new Date().toISOString() })
+            .update({ estado: estado, fecha_respuesta: new Date().toISOString() })
             .eq('id', solicitud_id)
             .select()
             .single();
