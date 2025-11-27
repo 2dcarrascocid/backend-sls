@@ -2,9 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "API Fair Play Chile",
-    "version": "1.0.0",
-    "x-updated-at": "2025-11-22T19:17:12.015Z",
-    "description": "\n        Documentación oficial de la API Fair Play Chile.\n        Última actualización: 22/11/2025, 16:17:12\n      "
+    "version": "1.0.0"
   },
   "paths": {
     "/jugadores/actualizar": {
@@ -887,6 +885,52 @@
         }
       }
     },
+    "/partidos/cercanos": {
+      "get": {
+        "summary": "Busca partidos cercanos disponibles",
+        "description": "Retorna partidos futuros ordenados por cercanía a la ubicación del usuario.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Latitud del usuario"
+          },
+          {
+            "in": "query",
+            "name": "lng",
+            "required": true,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Longitud del usuario"
+          },
+          {
+            "in": "query",
+            "name": "radio",
+            "schema": {
+              "type": "number",
+              "default": 50
+            },
+            "description": "Radio de búsqueda en kilómetros (opcional, por defecto 50km)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de partidos cercanos"
+          },
+          "400": {
+            "description": "Faltan parámetros de ubicación"
+          }
+        }
+      }
+    },
     "/partidos/calificar": {
       "get": {
         "summary": "Lista calificaciones de un partido",
@@ -1203,6 +1247,129 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/partidos/solicitudes/pendientes": {
+      "get": {
+        "summary": "Listar solicitudes de ingreso pendientes",
+        "description": "Retorna las solicitudes pendientes para los partidos de un dueño específico.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID del dueño de los partidos"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de solicitudes pendientes"
+          },
+          "400": {
+            "description": "Faltan parámetros"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
+    "/partidos/solicitudes/responder": {
+      "put": {
+        "summary": "Responder a una solicitud de ingreso (Aceptar/Rechazar)",
+        "description": "Actualiza el estado de una solicitud de ingreso a un partido.",
+        "tags": [
+          "Partidos"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "solicitud_id",
+                  "estado"
+                ],
+                "properties": {
+                  "solicitud_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "aceptado",
+                      "rechazado"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solicitud actualizada exitosamente"
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
+    "/partidos/unirse": {
+      "post": {
+        "summary": "Solicitar unirse a un partido",
+        "description": "Crea una solicitud de ingreso a un partido para un jugador.",
+        "tags": [
+          "Partidos"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jugador_id",
+                  "partido_id"
+                ],
+                "properties": {
+                  "jugador_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "partido_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitud creada exitosamente"
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "500": {
+            "description": "Error del servidor"
           }
         }
       }

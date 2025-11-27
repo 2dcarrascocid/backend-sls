@@ -1,10 +1,3 @@
-buscarPartidos:
-  handler: routes/partidos/buscar.handler
-  events:
-    - httpApi:
-        path: /partidos/buscar
-        method: get
-
 partidoAsistencia:
   handler: routes/partidos/asistencia.handler
   events:
@@ -57,3 +50,31 @@ createPartido:
     - httpApi:
         path: /partidos
         method: post
+
+buscarPartidosCercanos:
+  handler: routes/partidos/buscarCercanos.handler
+  events:
+    - httpApi:
+        path: /partidos/cercanos
+        method: get
+
+solicitarIngresoPartido:
+  handler: routes/partidos/solicitarIngreso.handler
+  events:
+    - httpApi:
+        path: /partidos/unirse
+        method: post
+
+listarSolicitudesPendientes:
+  handler: routes/partidos/listarSolicitudesPendientes.handler
+  events:
+    - httpApi:
+        path: /partidos/solicitudes/pendientes
+        method: get
+
+responderSolicitudPartido:
+  handler: routes/partidos/responderSolicitud.handler
+  events:
+    - httpApi:
+        path: /partidos/solicitudes/responder
+        method: put
