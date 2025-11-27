@@ -1,3 +1,10 @@
+buscarPartidos:
+  handler: routes/partidos/buscar.handler
+  events:
+    - httpApi:
+        path: /partidos/buscar
+        method: get
+
 partidoAsistencia:
   handler: routes/partidos/asistencia.handler
   events:
