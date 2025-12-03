@@ -85,3 +85,24 @@ responderSolicitudPartido:
     - httpApi:
         path: /partidos/solicitudes/responder
         method: put
+
+buscarPartidosPendientes:
+  handler: routes/partidos/buscarPendientes.handler
+  events:
+    - httpApi:
+        path: /partidos/pendientes
+        method: get
+
+buscarPartidosPasados:
+  handler: routes/partidos/buscarPasados.handler
+  events:
+    - httpApi:
+        path: /partidos/pasados
+        method: get
+
+detallePartido:
+  handler: routes/partidos/detalle.handler
+  events:
+    - httpApi:
+        path: /partidos/detalle
+        method: get
