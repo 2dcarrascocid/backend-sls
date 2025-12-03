@@ -106,3 +106,17 @@ detallePartido:
     - httpApi:
         path: /partidos/detalle
         method: get
+
+misAsistencias:
+  handler: routes/partidos/misAsistencias.handler
+  events:
+    - httpApi:
+        path: /partidos/mis-asistencias
+        method: get
+
+misAsistenciasPasadas:
+  handler: routes/partidos/misAsistenciasPasadas.handler
+  events:
+    - httpApi:
+        path: /partidos/mis-asistencias-pasadas
+        method: get

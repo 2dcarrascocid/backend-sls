@@ -145,8 +145,8 @@
     },
     "/jugadores/{id}": {
       "get": {
-        "summary": "Obtener un jugador por su ID",
-        "description": "Retorna los datos del jugador con el ID especificado.",
+        "summary": "Obtener un jugador por su ID o Email",
+        "description": "Retorna los datos del jugador buscando por ID (UUID) o por Email.",
         "tags": [
           "Jugadores"
         ],
@@ -155,7 +155,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "ID (uuid) del jugador",
+            "description": "ID (uuid) o Email del jugador",
             "schema": {
               "type": "string"
             }
@@ -203,349 +203,6 @@
           },
           "404": {
             "description": "Jugador no encontrado"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      }
-    },
-    "/login/basic": {
-      "post": {
-        "summary": "Login básico o con proveedor externo",
-        "description": "Permite iniciar sesión con email/password o mediante Google, Facebook, Instagram usando external_id. Si el usuario no existe, se crea automáticamente con un perfil BÁSICO.\n",
-        "tags": [
-          "Login"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "example": "usuario@mail.com"
-                  },
-                  "password": {
-                    "type": "string"
-                  },
-                  "nombre": {
-                    "type": "string"
-                  },
-                  "external_id": {
-                    "type": "string",
-                    "example": "provider_99339922"
-                  },
-                  "origen": {
-                    "type": "string",
-                    "enum": [
-                      "local",
-                      "google",
-                      "facebook",
-                      "instagram"
-                    ],
-                    "example": "google"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Login exitoso"
-          },
-          "400": {
-            "description": "Datos incompletos"
-          },
-          "401": {
-            "description": "Credenciales inválidas"
-          },
-          "500": {
-            "description": "Error interno del servidor"
-          }
-        }
-      }
-    },
-    "/parametros/categories": {
-      "post": {
-        "summary": "Crea una nueva categoría",
-        "tags": [
-          "Parametros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "tournament_id",
-                  "name",
-                  "gender"
-                ],
-                "properties": {
-                  "tournament_id": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "gender": {
-                    "type": "string",
-                    "enum": [
-                      "male",
-                      "female",
-                      "mixed"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Categoría creada"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      },
-      "get": {
-        "summary": "Obtiene todas las categorías",
-        "tags": [
-          "Parametros"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "tournament_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Filtrar por torneo"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de categorías"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      }
-    },
-    "/parametros/organizations": {
-      "post": {
-        "summary": "Crea una nueva organización",
-        "tags": [
-          "Parametros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "name",
-                  "slug"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "slug": {
-                    "type": "string"
-                  },
-                  "website": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Organización creada"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      },
-      "get": {
-        "summary": "Obtiene todas las organizaciones",
-        "tags": [
-          "Parametros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de organizaciones"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      }
-    },
-    "/parametros/seasons": {
-      "post": {
-        "summary": "Crea una nueva temporada",
-        "tags": [
-          "Parametros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "organization_id",
-                  "name",
-                  "start_date",
-                  "end_date"
-                ],
-                "properties": {
-                  "organization_id": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "start_date": {
-                    "type": "string",
-                    "format": "date"
-                  },
-                  "end_date": {
-                    "type": "string",
-                    "format": "date"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Temporada creada"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      },
-      "get": {
-        "summary": "Obtiene todas las temporadas",
-        "tags": [
-          "Parametros"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "organization_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Filtrar por organización"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de temporadas"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      }
-    },
-    "/parametros/tournaments": {
-      "post": {
-        "summary": "Crea un nuevo torneo",
-        "tags": [
-          "Parametros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "season_id",
-                  "name",
-                  "status",
-                  "type"
-                ],
-                "properties": {
-                  "season_id": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "draft",
-                      "active",
-                      "finished"
-                    ]
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "league",
-                      "cup",
-                      "groups"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Torneo creado"
-          },
-          "500": {
-            "description": "Error interno"
-          }
-        }
-      },
-      "get": {
-        "summary": "Obtiene todos los torneos",
-        "tags": [
-          "Parametros"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "season_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Filtrar por temporada"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de torneos"
           },
           "500": {
             "description": "Error interno"
@@ -733,7 +390,7 @@
       },
       "post": {
         "summary": "Confirma asistencia de un jugador",
-        "description": "Inserta un registro en partido_jugador para confirmar asistencia al partido.",
+        "description": "Inserta un registro en Asistencias para confirmar asistencia al partido.",
         "tags": [
           "Partido Jugador"
         ],
@@ -927,6 +584,122 @@
           },
           "400": {
             "description": "Faltan parámetros de ubicación"
+          }
+        }
+      }
+    },
+    "/partidos/pasados": {
+      "get": {
+        "summary": "Busca partidos pasados por owner_id",
+        "description": "Retorna partidos pasados filtrados por propietario.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID del propietario"
+          },
+          {
+            "in": "query",
+            "name": "next",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de paginación"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de partidos pasados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "partidos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "total_partidos": {
+                      "type": "integer",
+                      "description": "Total de partidos pasados encontrados"
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error al buscar partidos"
+          }
+        }
+      }
+    },
+    "/partidos/pendientes": {
+      "get": {
+        "summary": "Busca partidos pendientes por owner_id y fecha",
+        "description": "Retorna partidos futuros (pendientes) filtrados por propietario y fecha opcional.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID del propietario"
+          },
+          {
+            "in": "query",
+            "name": "next",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de paginación"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de partidos pendientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "partidos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "total_partidos": {
+                      "type": "integer",
+                      "description": "Total de partidos pendientes encontrados"
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error al buscar partidos"
           }
         }
       }
@@ -1137,6 +910,87 @@
         }
       }
     },
+    "/partidos/detalle": {
+      "get": {
+        "summary": "Obtiene el detalle de jugadores de un partido",
+        "description": "Retorna la lista de jugadores que asisten a un partido con su estado y detalles del perfil.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "partido_id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "ID del partido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de jugadores con detalle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "creador": {
+                      "type": "object",
+                      "properties": {
+                        "owner_id": {
+                          "type": "string"
+                        },
+                        "nombre": {
+                          "type": "string"
+                        },
+                        "apellido": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "jugadores": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "nombre": {
+                            "type": "string"
+                          },
+                          "apellido": {
+                            "type": "string"
+                          },
+                          "posicion": {
+                            "type": "string"
+                          },
+                          "avatar_url": {
+                            "type": "string"
+                          },
+                          "estado": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta partido_id"
+          },
+          "500": {
+            "description": "Error al obtener detalle"
+          }
+        }
+      }
+    },
     "/partidos/jugador": {
       "get": {
         "summary": "Obtiene los partidos pasados y pendientes de un jugador",
@@ -1254,7 +1108,7 @@
     "/partidos/solicitudes/pendientes": {
       "get": {
         "summary": "Listar solicitudes de ingreso pendientes",
-        "description": "Retorna las solicitudes pendientes para los partidos de un dueño específico.",
+        "description": "Retorna las solicitudes pendientes para los partidos de un dueño específico con paginación.",
         "tags": [
           "Partidos"
         ],
@@ -1268,11 +1122,43 @@
               "format": "uuid"
             },
             "description": "ID del dueño de los partidos"
+          },
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de paginación encriptado"
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de solicitudes pendientes"
+            "description": "Lista de solicitudes pendientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "solicitudes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "total_solicitudes": {
+                      "type": "integer",
+                      "description": "Total de solicitudes pendientes encontradas"
+                    },
+                    "next": {
+                      "type": "string",
+                      "description": "Token de paginación para siguiente página"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Faltan parámetros"

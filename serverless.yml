@@ -11,9 +11,7 @@ provider:
     SUPABASE_SERVICE_ROLE_KEY: ${env:SUPABASE_SERVICE_ROLE_KEY}
     USE_DB_MOCK: ${env:USE_DB_MOCK}
     API_KEY: ${env:API_KEY}
-    SUPABASE_URL_LIGA: ${env:SUPABASE_URL_LIGA}
-    SUPABASE_SERVICE_ROLE_KEY_LIGA: ${env:SUPABASE_SERVICE_ROLE_KEY_LIGA}
-
+   
   httpApi:
     cors:
       allowedOrigins:
@@ -25,10 +23,8 @@ provider:
       allowCredentials: false
       
 functions:
-  - ${file(./routes/login/serverlessLogin.yml)}
   - ${file(./routes/partidos/serverlessPartidos.yml)}
   - ${file(./routes/jugadores/serverlessJugadores.yml)}
-  - ${file(./routes/parametros/serverlessParametros.yml)}
 
 plugins:
   - serverless-offline
