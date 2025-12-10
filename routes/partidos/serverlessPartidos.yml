@@ -127,3 +127,10 @@ misAsistenciasPasadas:
     - httpApi:
         path: /partidos/mis-asistencias-pasadas
         method: get
+
+getPartidoById:
+  handler: routes/partidos/getById.handler
+  events:
+    - httpApi:
+        path: /partidos/{id}
+        method: get
