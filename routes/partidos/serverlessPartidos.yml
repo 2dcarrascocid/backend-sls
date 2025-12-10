@@ -58,6 +58,13 @@ createPartido:
         path: /partidos
         method: post
 
+updatePartido:
+  handler: routes/partidos/update.handler
+  events:
+    - httpApi:
+        path: /partidos
+        method: put
+
 buscarPartidosCercanos:
   handler: routes/partidos/buscarCercanos.handler
   events:

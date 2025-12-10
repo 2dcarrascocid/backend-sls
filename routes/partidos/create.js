@@ -44,7 +44,7 @@ import crypto from "crypto" // solo por si quieres validar el uuid
 export const handlerLocal = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}')
-    const { id, owner_id, nombre, fecha, lat, lng } = body
+    const { id, owner_id, nombre, fecha, lat, lng, actividad } = body
 
     // 🔍 Validación
     if (!id || !owner_id || !nombre || !fecha) {
@@ -73,7 +73,8 @@ export const handlerLocal = async (event) => {
         fecha,
         created_at: new Date().toISOString(),
         lat: lat || null,
-        lng: lng || null
+        lng: lng || null,
+        actividad: actividad || null
       }
 
       return {
@@ -93,7 +94,8 @@ export const handlerLocal = async (event) => {
           fecha,
           created_at: new Date().toISOString(),
           lat,
-          lng
+          lng,
+          actividad
         }
       ])
       .select()
@@ -117,7 +119,7 @@ export const handlerLocal = async (event) => {
     return {
       statusCode: 500,
       // body: JSON.stringify({ error: "Error interno del servidor" }),
-      body: JSON.stringify({ error}),
+      body: JSON.stringify({ error }),
     }
   }
 }

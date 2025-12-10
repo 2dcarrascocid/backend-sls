@@ -475,66 +475,82 @@
     },
     "/partidos/buscar": {
       "get": {
-        "summary": "Busca partidos dinámicamente",
-        "description": "Permite filtrar partidos por cualquier campo disponible en la tabla.",
+        "summary": "Busca partidos creados por un jugador",
+        "description": "Retorna todos los partidos donde el jugador es el owner, divididos en pendientes y pasados.",
         "tags": [
           "Partidos"
         ],
         "parameters": [
           {
             "in": "query",
-            "name": "id",
+            "name": "jugador_id",
+            "required": true,
             "schema": {
               "type": "string",
               "format": "uuid"
             },
-            "description": "Filtra por ID del partido"
+            "description": "ID del jugador (owner de los partidos)"
           },
           {
             "in": "query",
-            "name": "owner_id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Filtra por ID del propietario"
-          },
-          {
-            "in": "query",
-            "name": "nombre",
+            "name": "next",
+            "required": false,
             "schema": {
               "type": "string"
             },
-            "description": "Filtra por nombre del partido"
-          },
-          {
-            "in": "query",
-            "name": "fecha",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "description": "Filtra por fecha del partido"
+            "description": "Token de paginación encriptado"
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de partidos que cumplen con los filtros",
+            "description": "Partidos del jugador divididos en pendientes y pasados",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "partidos": {
+                    "jugador": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "nombre": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "partidos_pendientes": {
                       "type": "array",
                       "items": {
                         "type": "object"
                       }
+                    },
+                    "total_pendientes": {
+                      "type": "integer"
+                    },
+                    "partidos_pasados": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "total_pasados": {
+                      "type": "integer"
+                    },
+                    "next": {
+                      "type": "string"
                     }
                   }
                 }
               }
             }
+          },
+          "400": {
+            "description": "Falta el parámetro jugador_id"
+          },
+          "404": {
+            "description": "Jugador no encontrado"
           },
           "500": {
             "description": "Error al buscar partidos"
@@ -1162,6 +1178,196 @@
           },
           "400": {
             "description": "Faltan parámetros"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
+    "/partidos/mis-asistencias": {
+      "get": {
+        "summary": "Listar partidos futuros donde el jugador confirmó asistencia",
+        "description": "Retorna los partidos a los cuales el jugador asistirá basándose en la tabla asistencias.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "jugador_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID del jugador"
+          },
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de paginación encriptado"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de partidos confirmados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "partidos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "nombre": {
+                            "type": "string"
+                          },
+                          "fecha": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "tipo": {
+                            "type": "string"
+                          },
+                          "lat": {
+                            "type": "number"
+                          },
+                          "lng": {
+                            "type": "number"
+                          },
+                          "owner_id": {
+                            "type": "string"
+                          },
+                          "estado_asistencia": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "total_partidos": {
+                      "type": "integer",
+                      "description": "Total de partidos donde confirmó asistencia"
+                    },
+                    "next": {
+                      "type": "string",
+                      "description": "Token de paginación para siguiente página"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta el parámetro jugador_id"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
+    "/partidos/mis-asistencias-pasadas": {
+      "get": {
+        "summary": "Listar partidos pasados donde el jugador asistió",
+        "description": "Retorna los partidos pasados a los cuales el jugador asistió basándose en la tabla asistencias.",
+        "tags": [
+          "Partidos"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "jugador_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "ID del jugador"
+          },
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Token de paginación encriptado"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de partidos pasados confirmados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "partidos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "nombre": {
+                            "type": "string"
+                          },
+                          "fecha": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "tipo": {
+                            "type": "string"
+                          },
+                          "lat": {
+                            "type": "number"
+                          },
+                          "lng": {
+                            "type": "number"
+                          },
+                          "owner_id": {
+                            "type": "string"
+                          },
+                          "estado_asistencia": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "total_partidos": {
+                      "type": "integer",
+                      "description": "Total de partidos pasados donde asistió"
+                    },
+                    "next": {
+                      "type": "string",
+                      "description": "Token de paginación para siguiente página"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta el parámetro jugador_id"
           },
           "500": {
             "description": "Error del servidor"
