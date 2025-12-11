@@ -1,4 +1,5 @@
-En el proyecto backend-sls, necesito modificar el siguiente los endpoints que tienen relacion con partidos:
+En el proyecto backend-sls, necesito crear un servicio que permita listar las calificaciones 
+realcionada con los partidos:
 se agrego un nuevo campo llamado actividad (varchar).
 
 Debe tener la funcionalidad de:

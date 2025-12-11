@@ -52,12 +52,13 @@ import { withJsonResponse } from "../../utils/withJsonResponse.js";
  *                         type: string
  *                       estado:
  *                         type: string
+ *                       pago:
+ *                         type: boolean
  *       400:
  *         description: Falta partido_id
  *       500:
  *         description: Error al obtener detalle
  */
-
 export const handlerLocal = async (event) => {
     try {
         const query = event.queryStringParameters || {};
@@ -103,6 +104,7 @@ export const handlerLocal = async (event) => {
             .from('asistencias')
             .select(`
                 estado,
+                pago,
                 jugadores (
                     id,
                     nombre,
@@ -128,7 +130,8 @@ export const handlerLocal = async (event) => {
             apellidos: item.jugadores?.apellidos,
             posicion: item.jugadores?.posicion,
             avatar_url: item.jugadores?.avatar_url,
-            estado: item.estado
+            estado: item.estado,
+            pago: item.pago
         }));
 
         return {

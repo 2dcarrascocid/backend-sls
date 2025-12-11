@@ -58,6 +58,9 @@ import { encodeNext, decodeNext } from '../../utils/pagination.js'
  *                       updated_at:
  *                         type: string
  *                         format: date-time
+                      pago:
+                        type: boolean
+                        description: Indica si el jugador ha pagado
  *                 total_partidos:
  *                   type: integer
  *                   description: Total de partidos donde confirmó asistencia
@@ -115,7 +118,8 @@ export const handlerLocal = async (event) => {
                 asistencias!inner (
                     jugador_id,
                     estado,
-                    updated_at
+                    updated_at,
+                    pago
                 )
             `, { count: 'exact' })
             .eq('asistencias.jugador_id', jugador_id)
@@ -141,7 +145,8 @@ export const handlerLocal = async (event) => {
             lng: item.lng,
             owner_id: item.owner_id,
             estado_asistencia: item.asistencias[0]?.estado,
-            updated_at: item.asistencias[0]?.updated_at
+            updated_at: item.asistencias[0]?.updated_at,
+            pago: item.asistencias[0]?.pago
         }));
 
         // Calcular next token (si hay más datos)

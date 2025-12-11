@@ -37,6 +37,8 @@ import { encodeNext, decodeNext } from "../../utils/pagination.js";
  *                         type: integer
  *                       nombre:
  *                         type: string
+ *                       pago:
+ *                         type: boolean
  */
 
 export const handlerLocal = async (event) => {
@@ -108,6 +110,7 @@ export const handlerLocal = async (event) => {
             .from('asistencias')
             .select(`
                 estado,
+                pago,
                 jugadores (
                     id,
                     nombre,
@@ -130,7 +133,8 @@ export const handlerLocal = async (event) => {
             apellidos: a.jugadores?.apellidos,
             posicion: a.jugadores?.posicion,
             avatar_url: a.jugadores?.avatar_url,
-            estado: a.estado
+            estado: a.estado,
+            pago: a.pago
         })).filter(p => p.id_usuario && p.nombre) : [];
 
         partido.participantes = participantes;

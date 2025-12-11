@@ -39,6 +39,8 @@ import { withJsonResponse } from '../../utils/withJsonResponse.js'
  *                       created_at:
  *                         type: string
  *                         format: date-time
+ *                       pago:
+ *                         type: boolean
  *       400:
  *         description: Falta el parámetro partido_id
  *       500:

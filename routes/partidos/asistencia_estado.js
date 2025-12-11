@@ -20,6 +20,29 @@ import { withJsonResponse } from '../../utils/withJsonResponse.js'
  *     responses:
  *       200:
  *         description: Lista de asistencias del partido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 asistencias:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       partido_id:
+ *                         type: string
+ *                         format: uuid
+ *                       jugador_id:
+ *                         type: string
+ *                         format: uuid
+ *                       estado:
+ *                         type: string
+ *                       pago:
+ *                         type: boolean
  *       400:
  *         description: Falta partido_id
  *       500:
@@ -227,7 +250,7 @@ export const handlerLocal = async (event) => {
     console.error('Error en asistencia_estado:', error)
     return {
       statusCode: 500,
-      body: JSON.stringify({ error  })
+      body: JSON.stringify({ error })
     }
   }
 }

@@ -1,13 +1,14 @@
 import { supabase } from '../../services/db.js'
 import { withAuth } from '../../utils/withAuth.js'
 import { withJsonResponse } from '../../utils/withJsonResponse.js'
+import { encodeNext, decodeNext } from '../../utils/pagination.js'
 
 /**
  * @swagger
  * /partidos/cercanos:
  *   get:
  *     summary: Busca partidos cercanos disponibles
- *     description: Retorna partidos futuros ordenados por cercanía a la ubicación del usuario.
+ *     description: Retorna partidos futuros públicos ordenados por cercanía a la ubicación del usuario.
  *     tags:
  *       - Partidos
  *     parameters:
@@ -29,6 +30,11 @@ import { withJsonResponse } from '../../utils/withJsonResponse.js'
  *           type: number
  *           default: 50
  *         description: Radio de búsqueda en kilómetros (opcional, por defecto 50km)
+ *       - in: query
+ *         name: next
+ *         description: Token de paginación
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Lista de partidos cercanos
@@ -57,7 +63,7 @@ function deg2rad(deg) {
 export const handlerLocal = async (event) => {
     try {
         const query = event.queryStringParameters || {};
-        const { lat, lng, radio } = query;
+        const { lat, lng } = query;
 
         if (!lat || !lng) {
             return {
@@ -70,9 +76,22 @@ export const handlerLocal = async (event) => {
 
         const userLat = parseFloat(lat);
         const userLng = parseFloat(lng);
-        const searchRadius = radio ? parseFloat(radio) : 50; // Default 50km
+        const radio = query.radio ? parseFloat(query.radio) : 50; // Default 50km
 
-        // 🔍 Modo MOCK
+        // Paginación
+        let limit = 10;
+        let offset = 0;
+        if (query.next) {
+            const decoded = decodeNext(query.next);
+            if (decoded) {
+                offset = decoded.offset;
+                limit = decoded.limit;
+            }
+        }
+
+        const now = new Date().toISOString();
+
+        // 🔍 MOCK MODE
         if (process.env.USE_DB_MOCK === 'true') {
             const mockPartidos = [
                 {
@@ -80,56 +99,63 @@ export const handlerLocal = async (event) => {
                     nombre: 'Partido Lejano',
                     fecha: '2025-12-01T18:00:00Z',
                     lat: -33.00, // Lejos
-                    lng: -71.00
+                    lng: -71.00,
+                    tipo: 'publico'
                 },
                 {
                     id: 'mock-2',
                     nombre: 'Partido Cercano',
                     fecha: '2025-12-01T19:00:00Z',
                     lat: -33.451, // Muy cerca
-                    lng: -70.661
+                    lng: -70.661,
+                    tipo: 'publico'
                 },
                 {
-                    id: 'mock-3',
-                    nombre: 'Partido Pasado',
-                    fecha: '2020-01-01T10:00:00Z', // Pasado
-                    lat: -33.45,
-                    lng: -70.66
+                    id: 'mock-descarta',
+                    nombre: 'Partido Privado',
+                    fecha: '2025-12-01T20:00:00Z',
+                    lat: -33.451,
+                    lng: -70.661,
+                    tipo: 'privado'
                 }
             ];
 
-            // Filtrar futuros y calcular distancia
-            const now = new Date().toISOString();
-            const partidosFuturos = mockPartidos.filter(p => p.fecha > now);
+            const futuros = mockPartidos.filter(p => p.fecha > now && p.tipo === 'publico');
 
-            const partidosConDistancia = partidosFuturos.map(p => {
+            const conDistancia = futuros.map(p => {
                 const dist = getDistanceFromLatLonInKm(userLat, userLng, p.lat, p.lng);
                 return { ...p, distanciaKm: dist };
-            }).filter(p => p.distanciaKm <= searchRadius);
+            }).filter(p => p.distanciaKm <= radio);
 
-            partidosConDistancia.sort((a, b) => a.distanciaKm - b.distanciaKm);
+            conDistancia.sort((a, b) => a.distanciaKm - b.distanciaKm);
+
+            const total = conDistancia.length;
+            const items = conDistancia.slice(offset, offset + limit);
+
+            let nextToken = null;
+            if (offset + limit < total) {
+                nextToken = encodeNext(offset + limit, limit);
+            }
 
             return {
                 statusCode: 200,
                 body: JSON.stringify({
-                    partidos: partidosConDistancia,
+                    partidos: items,
                     ubicacion_usuario: { lat: userLat, lng: userLng },
-                    radio_busqueda_km: searchRadius,
-                    mock: true
+                    radio_busqueda_km: radio,
+                    total_registros: total,
+                    next: nextToken
                 })
             };
         }
 
-        // 1. Obtener partidos futuros
-        // Nota: Supabase espera formato ISO para fechas
-        const now = new Date().toISOString();
-
-        // En un escenario real con muchos datos, esto debería filtrarse más en BD (ej: bounding box)
-        // Pero para MVP, traemos los futuros y filtramos en código.
+        // 1. Obtener partidos futuros y PÚBLICOS
+        // Nota: Traemos todos los futuros públicos para calcular distancia en código (MVP).
         const { data: partidos, error } = await supabase
             .from('partidos')
             .select('*')
             .gt('fecha', now)
+            .eq('tipo', 'publico')
             .order('fecha', { ascending: true });
 
         if (error) {
@@ -140,24 +166,40 @@ export const handlerLocal = async (event) => {
             };
         }
 
-        // 2. Calcular distancias y filtrar
-        const partidosConDistancia = partidos.map(p => {
-            // Si el partido no tiene ubicación, asumimos distancia infinita o lo ignoramos
-            if (!p.lat || !p.lng) return { ...p, distanciaKm: null };
-
-            const dist = getDistanceFromLatLonInKm(userLat, userLng, p.lat, p.lng);
-            return { ...p, distanciaKm: dist };
-        }).filter(p => p.distanciaKm !== null && p.distanciaKm <= searchRadius);
+        // 2. Calcular distancias y filtrar por radio
+        const filtrados = partidos
+            .map(p => {
+                if (!p.lat || !p.lng) return { ...p, distanciaKm: null };
+                const d = getDistanceFromLatLonInKm(userLat, userLng, p.lat, p.lng);
+                return { ...p, distanciaKm: d };
+            })
+            .filter(p => p.distanciaKm !== null && p.distanciaKm <= radio);
 
         // 3. Ordenar por cercanía
-        partidosConDistancia.sort((a, b) => a.distanciaKm - b.distanciaKm);
+        filtrados.sort((a, b) => a.distanciaKm - b.distanciaKm);
 
+        // 4. Paginación en memoria
+        const totalRegistros = filtrados.length;
+        const pageItems = filtrados.slice(offset, offset + limit);
+
+        // 5. Calcular next token
+        let nextToken = null;
+        if (offset + limit < totalRegistros) {
+            nextToken = encodeNext(offset + limit, limit);
+        }
+
+        // 6. Retornar respuesta
         return {
             statusCode: 200,
             body: JSON.stringify({
-                partidos: partidosConDistancia,
-                ubicacion_usuario: { lat: userLat, lng: userLng },
-                radio_busqueda_km: searchRadius
+                partidos: pageItems,
+                ubicacion_usuario: {
+                    lat: userLat,
+                    lng: userLng
+                },
+                radio_busqueda_km: radio,
+                total_registros: totalRegistros,
+                next: nextToken
             })
         };
 
