@@ -1,0 +1,6 @@
+misCalificadosPartido:
+  handler: routes/calificaciones/partido.handler
+  events:
+    - httpApi:
+        path: /partidos/calificaciones
+        method: get

@@ -25,6 +25,7 @@ provider:
 functions:
   - ${file(./routes/partidos/serverlessPartidos.yml)}
   - ${file(./routes/jugadores/serverlessJugadores.yml)}
+  - ${file(./routes/calificaciones/serverlessCalificaciones.yml)}
 
 plugins:
   - serverless-offline
