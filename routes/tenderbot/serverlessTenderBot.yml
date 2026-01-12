@@ -1,0 +1,122 @@
+# Planes
+listarPlanes:
+  handler: routes/tenderbot/planes_list.handler
+  events:
+    - httpApi:
+        path: /tenderbot/planes
+        method: get
+
+obtenerPlan:
+  handler: routes/tenderbot/planes_get.handler
+  events:
+    - httpApi:
+        path: /tenderbot/planes/{id}
+        method: get
+
+crearPlan:
+  handler: routes/tenderbot/planes_create.handler
+  events:
+    - httpApi:
+        path: /tenderbot/planes
+        method: post
+
+actualizarPlan:
+  handler: routes/tenderbot/planes_update.handler
+  events:
+    - httpApi:
+        path: /tenderbot/planes/{id}
+        method: patch
+
+# Clientes
+listarClientes:
+  handler: routes/tenderbot/clientes_list.handler
+  events:
+    - httpApi:
+        path: /tenderbot/clientes
+        method: get
+
+obtenerCliente:
+  handler: routes/tenderbot/clientes_get.handler
+  events:
+    - httpApi:
+        path: /tenderbot/clientes/{id}
+        method: get
+
+crearCliente:
+  handler: routes/tenderbot/clientes_create.handler
+  events:
+    - httpApi:
+        path: /tenderbot/clientes
+        method: post
+
+actualizarCliente:
+  handler: routes/tenderbot/clientes_update.handler
+  events:
+    - httpApi:
+        path: /tenderbot/clientes/{id}
+        method: patch
+
+# Suscripciones
+listarSuscripciones:
+  handler: routes/tenderbot/suscripciones_list.handler
+  events:
+    - httpApi:
+        path: /tenderbot/suscripciones
+        method: get
+
+obtenerSuscripcion:
+  handler: routes/tenderbot/suscripciones_get.handler
+  events:
+    - httpApi:
+        path: /tenderbot/suscripciones/{id}
+        method: get
+
+crearSuscripcion:
+  handler: routes/tenderbot/suscripciones_create.handler
+  events:
+    - httpApi:
+        path: /tenderbot/suscripciones
+        method: post
+
+actualizarSuscripcion:
+  handler: routes/tenderbot/suscripciones_update.handler
+  events:
+    - httpApi:
+        path: /tenderbot/suscripciones/{id}
+        method: patch
+
+# Pagos
+listarPagos:
+  handler: routes/tenderbot/pagos_list.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos
+        method: get
+
+obtenerPago:
+  handler: routes/tenderbot/pagos_get.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos/{id}
+        method: get
+
+crearPago:
+  handler: routes/tenderbot/pagos_create.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos
+        method: post
+
+marcarPagoPagado:
+  handler: routes/tenderbot/pagos_pagado.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos/{id}/marcar-pagado
+        method: post
+
+marcarPagoFallido:
+  handler: routes/tenderbot/pagos_fallido.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos/{id}/marcar-fallido
+        method: post

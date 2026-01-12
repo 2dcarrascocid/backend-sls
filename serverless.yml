@@ -26,6 +26,7 @@ functions:
   - ${file(./routes/partidos/serverlessPartidos.yml)}
   - ${file(./routes/jugadores/serverlessJugadores.yml)}
   - ${file(./routes/calificaciones/serverlessCalificaciones.yml)}
+  - ${file(./routes/tenderbot/serverlessTenderBot.yml)}
 
 plugins:
   - serverless-offline
