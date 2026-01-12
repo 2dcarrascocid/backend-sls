@@ -1,12 +1,12 @@
 # Backend Serverless - FPLAYCHILE
 
-Este proyecto es un backend construido con **Node.js 20**, **Serverless Framework 4.x**, y desplegado en **AWS Lambda**. Permite manejar usuarios, login y gestión de partidos de fútbol.
+Este proyecto es un backend construido con **Node.js 22**, **Serverless Framework 4.x**, y desplegado en **AWS Lambda**. Permite manejar usuarios, login y gestión de partidos de fútbol.
 
 ---
 
 ## Tecnologías y librerías usadas
 
-- **Node.js 20**: runtime principal.
+- **Node.js 22**: runtime principal.
 - **Serverless Framework 4.x**: para despliegue en AWS Lambda.
 - **dotenv**: gestión de variables de entorno.
 - **@supabase/supabase-js**: cliente para conectarse a la base de datos Supabase/PostgreSQL.

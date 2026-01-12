@@ -3,7 +3,7 @@ frameworkVersion: '>=4.0.0'
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   region: us-east-1
   stage: dev
   environment:
@@ -52,10 +52,9 @@ build:
   esbuild:
     bundle: true
     minify: true
-    target: node20
+    target: node22
     platform: node
-    external:
-      - aws-sdk
+    external: []
 
 custom:
   serverless-offline:
