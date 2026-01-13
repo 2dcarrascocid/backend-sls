@@ -75,3 +75,62 @@ curl -X POST https://api.url/tenderbot/pagos/UUID-PAGO/marcar-pagado \
     "proveedor_pago": "STRIPE"
   }'
 ```
+
+## Servicio de Notificación (Email)
+
+El sistema envía automáticamente un correo de confirmación al `email_contacto` del cliente cuando un pago se marca como `PAGADO`.
+
+### Requisitos
+1. Ejecutar migración SQL: `routes/tenderbot/migrations/001_add_email_notificado_en.sql`
+2. Configurar variables de entorno SMTP en `.env`.
+
+### Variables de Entorno (.env)
+```env
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=user@example.com
+SMTP_PASS=password
+SMTP_SECURE=true
+SMTP_FROM="Tender Bot <no-reply@tenderbot.cl>"
+```
+
+### Endpoint de Reenvío
+Para reenviar manualmente un correo de confirmación:
+- `POST /tenderbot/pagos/{id}/reenviar-confirmacion`
+- Parámetro opcional: `?force=true` para reenviar aunque ya se haya enviado antes.
+
+```bash
+curl -X POST https://api.url/tenderbot/pagos/UUID-PAGO/reenviar-confirmacion?force=true \
+  -H "x-api-key: TU_API_KEY"
+```
+
+## Servicio de Notificación (Webhook)
+
+El sistema notifica a un webhook externo cada vez que un pago es exitoso (`PAGADO`).
+
+### Configuración
+Agregar la URL del webhook en `.env`:
+```env
+WEBHOOK_PAGOS_EXITOSOS=https://mi-sistema-externo.com/api/webhooks/pagos
+```
+
+### Payload del Webhook (POST)
+```json
+{
+  "event": "payment.success",
+  "timestamp": "2024-03-20T10:00:00.000Z",
+  "data": {
+    "pago": {
+      "id": "uuid-pago",
+      "monto": 10000,
+      "moneda": "CLP",
+      "estado": "PAGADO",
+      "pagado_en": "2024-03-20T10:00:00.000Z",
+      ...
+    },
+    "suscripcion": { ... },
+    "cliente": { ... },
+    "plan": { ... }
+  }
+}
+```

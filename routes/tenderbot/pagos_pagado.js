@@ -1,6 +1,8 @@
 import { supabase } from '../../services/db.js'
 import { withAuth } from '../../utils/withAuth.js'
 import { withJsonResponse } from '../../utils/withJsonResponse.js'
+import { sendPaymentConfirmationEmail } from './services/emailService.js'
+import { sendPaymentWebhook } from './services/webhookService.js'
 
 /**
  * @swagger
@@ -109,7 +111,49 @@ export const handlerLocal = async (event) => {
         created_at: now
     }])
 
-    return { statusCode: 200, body: JSON.stringify({ message: 'Pago procesado exitosamente' }) }
+    // 5. Enviar Notificaciones (Correo y Webhook)
+    let emailStatus = { success: false }
+    let webhookStatus = { success: false }
+    
+    try {
+        console.log(`[PagosPagado] Iniciando proceso de notificación para Pago ID: ${id}`)
+        
+        // Obtenemos Cliente y Plan para las notificaciones
+        const { data: cliente } = await supabase.from('tb_clientes').select('*').eq('id', suscripcion.cliente_id).single()
+        const { data: plan } = await supabase.from('tb_planes').select('*').eq('id', suscripcion.plan_id).single()
+
+        if (cliente && plan) {
+             console.log(`[PagosPagado] Cliente y Plan encontrados. Enviando notificaciones a: ${cliente.email_contacto}`)
+             const pagoActualizado = { ...pago, estado: 'PAGADO', pagado_en: now, orden_compra, transaction_id, proveedor_pago }
+             
+             // Enviar Email
+             emailStatus = await sendPaymentConfirmationEmail({ cliente, plan, suscripcion, pago: pagoActualizado })
+             console.log(`[PagosPagado] Resultado Email:`, emailStatus)
+
+             if (emailStatus.success) {
+                 await supabase.from('tb_pagos').update({ email_notificado_en: new Date().toISOString() }).eq('id', id)
+             }
+
+             // Enviar Webhook
+             webhookStatus = await sendPaymentWebhook({ cliente, plan, suscripcion, pago: pagoActualizado })
+             console.log(`[PagosPagado] Resultado Webhook:`, webhookStatus)
+        } else {
+             console.warn(`[PagosPagado] No se encontró Cliente o Plan para notificar. ClienteID: ${suscripcion.cliente_id}, PlanID: ${suscripcion.plan_id}`)
+        }
+    } catch (e) {
+        console.error('Error enviando notificaciones:', e)
+        // No lanzamos error para no revertir el pago
+    }
+
+    return { 
+        statusCode: 200, 
+        body: JSON.stringify({ 
+            message: 'Pago procesado exitosamente', 
+            email_notificado: emailStatus.success,
+            email_details: emailStatus.error ? emailStatus.error : undefined,
+            webhook_notificado: webhookStatus.success
+        }) 
+    }
 
   } catch (error) {
     console.error(error)

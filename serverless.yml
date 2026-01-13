@@ -14,6 +14,13 @@ provider:
     WEBPAY_COMMERCE_CODE: ${env:WEBPAY_COMMERCE_CODE, ''}
     WEBPAY_API_KEY: ${env:WEBPAY_API_KEY, ''}
     WEBPAY_HOST: ${env:WEBPAY_HOST, ''}
+    SMTP_HOST: ${env:SMTP_HOST, ''}
+    SMTP_PORT: ${env:SMTP_PORT, ''}
+    SMTP_USER: ${env:SMTP_USER, ''}
+    SMTP_PASS: ${env:SMTP_PASS, ''}
+    SMTP_SECURE: ${env:SMTP_SECURE, ''}
+    SMTP_FROM: ${env:SMTP_FROM, ''}
+    WEBHOOK_PAGOS_EXITOSOS: ${env:WEBHOOK_PAGOS_EXITOSOS, ''}
    
   httpApi:
     cors:
@@ -67,6 +74,7 @@ build:
       - url
       - zlib
       - transbank-sdk
+      - nodemailer
 
 custom:
   serverless-offline:

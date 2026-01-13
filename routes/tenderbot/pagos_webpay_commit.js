@@ -2,6 +2,8 @@ import { supabase } from '../../services/db.js'
 import { withAuth } from '../../utils/withAuth.js'
 import { withJsonResponse } from '../../utils/withJsonResponse.js'
 import { WebpayService } from '../../services/transbankService.js'
+import { sendPaymentConfirmationEmail } from './services/emailService.js'
+import { sendPaymentWebhook } from './services/webhookService.js'
 
 /**
  * @swagger
@@ -102,7 +104,54 @@ export const handlerLocal = async (event) => {
         .update(subUpdates)
         .eq('id', suscripcion.id)
 
-    return { statusCode: 200, body: JSON.stringify({ message: 'Pago exitoso', payment: response }) }
+    // 6. Enviar Notificaciones (Correo y Webhook)
+    let emailStatus = { success: false }
+    let webhookStatus = { success: false }
+
+    try {
+        console.log(`[PagosWebpayCommit] Iniciando proceso de notificación para Pago ID: ${pago.id}`)
+        
+        // Fetch manual para asegurar datos correctos (evitar problemas de join)
+        const { data: cliente } = await supabase.from('tb_clientes').select('*').eq('id', suscripcion.cliente_id).single()
+        const { data: plan } = await supabase.from('tb_planes').select('*').eq('id', suscripcion.plan_id).single()
+
+        if (cliente && plan) {
+             console.log(`[PagosWebpayCommit] Cliente y Plan encontrados. Enviando notificaciones a: ${cliente.email_contacto}`)
+             const pagoActualizado = { 
+                 ...pago, 
+                 estado: 'PAGADO', 
+                 pagado_en: now, 
+                 transaction_id: response.authorization_code, 
+                 proveedor_pago: 'WEBPAY' 
+             }
+             
+             // Enviar Email
+             emailStatus = await sendPaymentConfirmationEmail({ cliente, plan, suscripcion, pago: pagoActualizado })
+             console.log(`[PagosWebpayCommit] Resultado Email:`, emailStatus)
+
+             if (emailStatus.success) {
+                 await supabase.from('tb_pagos').update({ email_notificado_en: new Date().toISOString() }).eq('id', pago.id)
+             }
+
+             // Enviar Webhook
+             webhookStatus = await sendPaymentWebhook({ cliente, plan, suscripcion, pago: pagoActualizado })
+             console.log(`[PagosWebpayCommit] Resultado Webhook:`, webhookStatus)
+        } else {
+             console.warn(`[PagosWebpayCommit] No se encontró Cliente o Plan para notificar. ClienteID: ${suscripcion.cliente_id}, PlanID: ${suscripcion.plan_id}`)
+        }
+    } catch (e) {
+        console.error('Error enviando notificaciones (Webpay):', e)
+    }
+
+    return { 
+        statusCode: 200, 
+        body: JSON.stringify({ 
+            message: 'Pago exitoso', 
+            payment: response,
+            email_notificado: emailStatus.success,
+            webhook_notificado: webhookStatus.success
+        }) 
+    }
 
   } catch (error) {
     console.error('Webpay Commit Error:', error)

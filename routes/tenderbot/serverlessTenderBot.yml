@@ -135,3 +135,11 @@ commitWebpay:
     - httpApi:
         path: /tenderbot/pagos/webpay-commit
         method: post
+
+# Emails
+reenviarConfirmacionPago:
+  handler: routes/tenderbot/pagos_resend_email.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos/{id}/reenviar-confirmacion
+        method: post
