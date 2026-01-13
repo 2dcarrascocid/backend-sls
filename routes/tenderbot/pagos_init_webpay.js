@@ -40,6 +40,7 @@ import { WebpayService } from '../../services/transbankService.js'
  */
 export const handlerLocal = async (event) => {
   try {
+    console.log("PAGIOS:::::", event.body)
     const { id } = event.pathParameters || {}
     const body = JSON.parse(event.body || '{}')
     const { returnUrl } = body

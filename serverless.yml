@@ -11,6 +11,9 @@ provider:
     SUPABASE_SERVICE_ROLE_KEY: ${env:SUPABASE_SERVICE_ROLE_KEY}
     USE_DB_MOCK: ${env:USE_DB_MOCK}
     API_KEY: ${env:API_KEY}
+    WEBPAY_COMMERCE_CODE: ${env:WEBPAY_COMMERCE_CODE, ''}
+    WEBPAY_API_KEY: ${env:WEBPAY_API_KEY, ''}
+    WEBPAY_HOST: ${env:WEBPAY_HOST, ''}
    
   httpApi:
     cors:
