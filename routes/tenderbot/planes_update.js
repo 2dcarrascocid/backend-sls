@@ -53,6 +53,7 @@ export const handlerLocal = async (event) => {
 
     // Validar precios si vienen
     if ((body.precio_mensual !== undefined && body.precio_mensual < 0) || 
+        (body.precio_semestral !== undefined && body.precio_semestral < 0) ||
         (body.precio_anual !== undefined && body.precio_anual < 0)) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Precios deben ser >= 0' }) }
     }

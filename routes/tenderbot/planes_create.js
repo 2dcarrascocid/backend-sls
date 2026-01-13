@@ -54,7 +54,7 @@ import crypto from "crypto"
 export const handlerLocal = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}')
-    const { codigo, nombre, descripcion, precio_mensual, precio_anual, moneda, activo } = body
+    const { codigo, nombre, descripcion, precio_mensual, precio_semestral, precio_anual, moneda, activo } = body
 
     if (!codigo || !nombre || precio_mensual === undefined || precio_anual === undefined) {
       return {
@@ -63,7 +63,7 @@ export const handlerLocal = async (event) => {
       }
     }
 
-    if (precio_mensual < 0 || precio_anual < 0) {
+    if (precio_mensual < 0 || precio_anual < 0 || (precio_semestral !== undefined && precio_semestral < 0)) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Los precios deben ser mayores o iguales a 0' })
@@ -81,6 +81,7 @@ export const handlerLocal = async (event) => {
           nombre,
           descripcion,
           precio_mensual,
+          precio_semestral: precio_semestral !== undefined ? precio_semestral : 0, // Default 0 or null if column allows
           precio_anual,
           moneda: moneda || 'CLP',
           activo: activo !== undefined ? activo : true,

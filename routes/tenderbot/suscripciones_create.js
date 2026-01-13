@@ -41,7 +41,7 @@ export const handlerLocal = async (event) => {
     if (!cliente_id || !plan_id || !periodicidad) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Faltan campos' }) }
     }
-    if (!['MENSUAL', 'ANUAL'].includes(periodicidad)) {
+    if (!['MENSUAL', 'ANUAL', 'SEMESTRAL'].includes(periodicidad)) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Periodicidad inválida' }) }
     }
 
