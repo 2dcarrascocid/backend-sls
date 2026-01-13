@@ -24,11 +24,12 @@
     "pg": "^8.16.3",
     "serverless-http": "^4.0.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-dist": "^5.30.2"
+    "swagger-ui-dist": "^5.30.2",
+    "transbank-sdk": "^6.1.1"
   },
   "description": "",
   "devDependencies": {
-    "aws-sdk": "^2.1378.0",
+    "aws-sdk": "^1.18.0",
     "serverless": "^4",
     "serverless-offline": "^14.4.0"
   }

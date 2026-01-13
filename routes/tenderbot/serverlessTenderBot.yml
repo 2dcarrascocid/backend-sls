@@ -120,3 +120,18 @@ marcarPagoFallido:
     - httpApi:
         path: /tenderbot/pagos/{id}/marcar-fallido
         method: post
+
+# Webpay
+initWebpay:
+  handler: routes/tenderbot/pagos_init_webpay.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos/{id}/init-webpay
+        method: post
+
+commitWebpay:
+  handler: routes/tenderbot/pagos_webpay_commit.handler
+  events:
+    - httpApi:
+        path: /tenderbot/pagos/webpay-commit
+        method: post

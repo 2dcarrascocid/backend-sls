@@ -55,7 +55,15 @@ build:
     minify: true
     target: node22
     platform: node
-    external: []
+    external: 
+      - util
+      - crypto
+      - stream
+      - http
+      - https
+      - url
+      - zlib
+      - transbank-sdk
 
 custom:
   serverless-offline:
