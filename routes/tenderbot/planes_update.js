@@ -31,6 +31,7 @@ import { withJsonResponse } from '../../utils/withJsonResponse.js'
  *               nombre: { type: string }
  *               descripcion: { type: string }
  *               precio_mensual: { type: number }
+ *               precio_semestral: { type: number }
  *               precio_anual: { type: number }
  *               moneda: { type: string }
  *               activo: { type: boolean }

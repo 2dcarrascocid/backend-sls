@@ -37,6 +37,8 @@ import crypto from "crypto"
  *                 type: string
  *               precio_mensual:
  *                 type: number
+ *               precio_semestral:
+ *                 type: number
  *               precio_anual:
  *                 type: number
  *               moneda:

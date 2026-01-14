@@ -26,23 +26,22 @@ import crypto from "crypto"
  *             properties:
  *               cliente_id: { type: string, format: uuid }
  *               plan_id: { type: string, format: uuid }
- *               periodicidad: { type: string, enum: [MENSUAL, ANUAL] }
+ *               periodicidad: { type: string, enum: [MENSUAL, SEMESTRAL, ANUAL] }
  *     responses:
  *       201: { description: Suscripción creada }
  *       409: { description: Cliente ya tiene suscripción activa }
- *       400: { description: Plan no válido o inactivo }
+ *       400: { description: Plan no válido, inactivo o precio no configurado }
  */
 export const handlerLocal = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}')
     const { cliente_id, plan_id, periodicidad } = body
-    console.log("baody:::::", body)
 
     if (!cliente_id || !plan_id || !periodicidad) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Faltan campos' }) }
     }
-    if (!['MENSUAL', 'ANUAL', 'SEMESTRAL'].includes(periodicidad)) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Periodicidad inválida' }) }
+    if (!['MENSUAL', 'SEMESTRAL', 'ANUAL'].includes(periodicidad)) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Periodicidad inválida. Valores permitidos: MENSUAL, SEMESTRAL, ANUAL' }) }
     }
 
     // 1. Validar cliente
@@ -57,17 +56,7 @@ export const handlerLocal = async (event) => {
     if (!plan.activo) return { statusCode: 400, body: JSON.stringify({ error: 'Plan inactivo' }) }
 
     // 3. Validar suscripción activa existente
-    const { data: activeSub } = await supabase
-      .from('tb_suscripciones')
-      .select('id')
-      .eq('cliente_id', cliente_id)
-      .eq('estado', 'ACTIVA')
-      .single() // returns error if 0 or >1, checking null is safer with maybeSingle usually but single() throws on 0.
-
-    // If single() throws error because no rows, that's good. If it finds one, that's bad.
-    // Actually supabase-js v2: single() returns data or null? No, it returns error if not exactly one.
-    // Use maybeSingle()
-    const { data: existing, error: errExist } = await supabase
+    const { data: existing } = await supabase
         .from('tb_suscripciones')
         .select('id')
         .eq('cliente_id', cliente_id)
@@ -79,12 +68,29 @@ export const handlerLocal = async (event) => {
     }
 
     // 4. Calcular precios y fechas
-    const precio_acordado = periodicidad === 'MENSUAL' ? plan.precio_mensual : plan.precio_anual
+    // Se usa el precio_mensual como base para calcular descuentos
+    if (plan.precio_mensual === undefined || plan.precio_mensual === null || plan.precio_mensual < 0) {
+         return { statusCode: 400, body: JSON.stringify({ error: 'El plan no tiene un precio mensual válido para calcular la suscripción' }) }
+    }
+
+    let precio_acordado;
+    if (periodicidad === 'MENSUAL') {
+        precio_acordado = plan.precio_mensual;
+    } else if (periodicidad === 'SEMESTRAL') {
+        // 5% descuento: (Mensual * 6) * 0.95
+        precio_acordado = Math.round((plan.precio_mensual * 6) * 0.95);
+    } else { // ANUAL
+        // 20% descuento: (Mensual * 12) * 0.80
+        precio_acordado = Math.round((plan.precio_mensual * 12) * 0.80);
+    }
+
     const fecha_inicio = new Date()
     const proxima_facturacion = new Date(fecha_inicio)
     
     if (periodicidad === 'MENSUAL') {
         proxima_facturacion.setMonth(proxima_facturacion.getMonth() + 1)
+    } else if (periodicidad === 'SEMESTRAL') {
+        proxima_facturacion.setMonth(proxima_facturacion.getMonth() + 6)
     } else {
         proxima_facturacion.setFullYear(proxima_facturacion.getFullYear() + 1)
     }
@@ -95,13 +101,11 @@ export const handlerLocal = async (event) => {
         cliente_id,
         plan_id,
         periodicidad,
-        estado: 'ACTIVA', // Asumimos activa al crear, aunque el pago esté pendiente? O estado PENDIENTE_PAGO? Requerimiento dice: "No permitir 2 suscripciones ACTIVA". Asumiremos se crea ACTIVA o tal vez 'PENDIENTE'. El usuario dice "No permitir 2 suscripciones ACTIVA". Asumiré que nace ACTIVA pero con deuda. O tal vez nace 'PENDIENTE' hasta que pague.
-        // Pero la regla de negocio dice "No permitir 2 ACTIVA". Si nace ACTIVA, bloquea otras.
-        // Asumiré estado 'ACTIVA' para que el servicio funcione, y tiene un pago pendiente.
+        estado: 'ACTIVA', 
         fecha_inicio: fecha_inicio.toISOString(),
         proxima_facturacion: proxima_facturacion.toISOString(),
         precio_acordado,
-        moneda: plan.moneda,
+        moneda: plan.moneda || 'CLP',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     }
@@ -124,7 +128,7 @@ export const handlerLocal = async (event) => {
         periodo_desde: fecha_inicio.toISOString(),
         periodo_hasta: periodo_hasta.toISOString(),
         monto: precio_acordado,
-        moneda: plan.moneda,
+        moneda: plan.moneda || 'CLP',
         estado: 'PENDIENTE',
         created_at: new Date().toISOString()
     }
@@ -134,7 +138,7 @@ export const handlerLocal = async (event) => {
         .insert([pagoData])
 
     if (insertPagoErr) {
-        // Rollback suscripción (manual cleanup since no transaction block easily avail in JS client without RPC)
+        // Rollback suscripción
         await supabase.from('tb_suscripciones').delete().eq('id', subId)
         throw insertPagoErr
     }

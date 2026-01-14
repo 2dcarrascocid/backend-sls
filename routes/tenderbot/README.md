@@ -38,6 +38,7 @@ curl -X POST https://api.url/tenderbot/planes \
     "codigo": "FULL",
     "nombre": "Plan Full",
     "precio_mensual": 10000,
+    "precio_semestral": 55000,
     "precio_anual": 100000,
     "moneda": "CLP"
   }'
@@ -62,8 +63,10 @@ curl -X POST https://api.url/tenderbot/suscripciones \
   -d '{
     "cliente_id": "UUID-CLIENTE",
     "plan_id": "UUID-PLAN",
-    "periodicidad": "MENSUAL"
+    "periodicidad": "MENSUAL" 
   }'
+# Periodicidad permitida: MENSUAL, SEMESTRAL, ANUAL
+# El precio se obtiene automáticamente de la configuración del plan.
 ```
 
 ### Confirmar Pago
